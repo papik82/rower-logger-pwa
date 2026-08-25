@@ -1,0 +1,520 @@
+"use strict";
+
+/* ============================================================
+   KONFIGURACJA — uzupełnij po wdrożeniu Google Apps Script
+   (patrz DEPLOY.md, sekcja "Apps Script")
+   ============================================================ */
+const CONFIG = {
+  // URL wdrożonego Google Apps Script (kończy się na /exec)
+  APPS_SCRIPT_URL: localStorage.getItem("rowerLoggerAppsScriptUrl") || "",
+  SAMPLE_INTERVAL_S: 5,
+  IDLE_SPEED_THRESHOLD_KMH: 0.5,
+  TRIM_IDLE_EDGES: true,
+};
+
+const FITNESS_MACHINE_SERVICE = 0x1826;
+const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
+
+const DETAIL_HEADERS_ORDER = [
+  "session_id", "timestamp", "elapsed_s", "speed_kmh", "cadence_rpm",
+  "distance_m", "resistance_level", "power_w", "heart_rate_bpm",
+  "energy_total_kcal", "energy_per_hour_kcal", "energy_per_minute_kcal",
+];
+
+/* ============================================================
+   Dekodowanie FTMS Indoor Bike Data (0x2AD2) — ten sam algorytm
+   co w bike_core.py, przepisany na JavaScript.
+   ============================================================ */
+function decodeIndoorBikeData(dataView) {
+  const flags = dataView.getUint16(0, true);
+  let idx = 2;
+  const result = {};
+
+  const moreData = flags & 0x0001;
+  if (!moreData) {
+    result.speed_kmh = dataView.getUint16(idx, true) * 0.01;
+    idx += 2;
+  }
+  if (flags & 0x0002) idx += 2; // average speed — pomijamy
+  if (flags & 0x0004) {
+    result.cadence_rpm = dataView.getUint16(idx, true) * 0.5;
+    idx += 2;
+  }
+  if (flags & 0x0008) idx += 2; // average cadence — pomijamy
+  if (flags & 0x0010) {
+    // total distance — uint24
+    const b0 = dataView.getUint8(idx);
+    const b1 = dataView.getUint8(idx + 1);
+    const b2 = dataView.getUint8(idx + 2);
+    result.distance_m = b0 | (b1 << 8) | (b2 << 16);
+    idx += 3;
+  }
+  if (flags & 0x0020) {
+    result.resistance_level = dataView.getInt16(idx, true);
+    idx += 2;
+  }
+  if (flags & 0x0040) {
+    result.power_w = dataView.getInt16(idx, true);
+    idx += 2;
+  }
+  if (flags & 0x0080) idx += 2; // average power — pomijamy
+  if (flags & 0x0100) {
+    result.energy_total_kcal = dataView.getUint16(idx, true);
+    idx += 2;
+    result.energy_per_hour_kcal = dataView.getUint16(idx, true);
+    idx += 2;
+    result.energy_per_minute_kcal = dataView.getUint8(idx);
+    idx += 1;
+  }
+  if (flags & 0x0200) {
+    result.heart_rate_bpm = dataView.getUint8(idx);
+    idx += 1;
+  }
+  if (flags & 0x0400) idx += 1; // metabolic equivalent — pomijamy
+  if (flags & 0x0800) {
+    result.elapsed_s = dataView.getUint16(idx, true);
+    idx += 2;
+  }
+  if (flags & 0x1000) idx += 2; // remaining time — pomijamy
+
+  return result;
+}
+
+/* ============================================================
+   Wysyłka do Google Sheets przez Apps Script (unikamy CORS
+   preflight, wysyłając jako text/plain — Apps Script i tak
+   parsuje treść jako JSON po swojej stronie)
+   ============================================================ */
+async function sendToSheets(type, row) {
+  if (!CONFIG.APPS_SCRIPT_URL) {
+    queueOffline(type, row);
+    return { ok: false, offline: true };
+  }
+  try {
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type, row }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Nieznany błąd Apps Script");
+    return { ok: true };
+  } catch (err) {
+    log(`  [!] Błąd wysyłki (${type}): ${err.message}. Zapisano lokalnie.`);
+    queueOffline(type, row);
+    return { ok: false, error: err.message };
+  }
+}
+
+function queueOffline(type, row) {
+  const key = "rowerLoggerOfflineQueue";
+  const queue = JSON.parse(localStorage.getItem(key) || "[]");
+  queue.push({ type, row, ts: Date.now() });
+  localStorage.setItem(key, JSON.stringify(queue));
+}
+
+async function retryOfflineQueue() {
+  const key = "rowerLoggerOfflineQueue";
+  const queue = JSON.parse(localStorage.getItem(key) || "[]");
+  if (queue.length === 0) {
+    log("Brak zaległych danych do wysłania.");
+    return;
+  }
+  log(`Próbuję wysłać ${queue.length} zaległych wpisów...`);
+  const remaining = [];
+  for (const item of queue) {
+    const result = await sendToSheetsDirect(item.type, item.row);
+    if (!result.ok) remaining.push(item);
+  }
+  localStorage.setItem(key, JSON.stringify(remaining));
+  log(`Wysłano ${queue.length - remaining.length}/${queue.length}. Pozostało: ${remaining.length}.`);
+}
+
+async function sendToSheetsDirect(type, row) {
+  try {
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type, row }),
+    });
+    const data = await res.json();
+    return { ok: !!data.ok };
+  } catch (err) {
+    return { ok: false };
+  }
+}
+
+/* ============================================================
+   Stan aplikacji
+   ============================================================ */
+let bleDevice = null;
+let bleServer = null;
+let bleChar = null;
+let wakeLock = null;
+let isRecording = false;
+let sessionId = null;
+let startTime = null;
+let latestSample = {};
+let history = [];
+let samplingTimer = null;
+let sparklineData = [];
+
+/* ============================================================
+   Wake Lock — nie pozwól zgasnąć ekranowi podczas nagrywania
+   ============================================================ */
+async function acquireWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => log("Wake Lock zwolniony przez system."));
+    } else {
+      log("Wake Lock API niedostępne w tej przeglądarce — ekran może zgasnąć sam.");
+    }
+  } catch (err) {
+    log(`Nie udało się zablokować usypiania ekranu: ${err.message}`);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+
+document.addEventListener("visibilitychange", async () => {
+  if (isRecording && document.visibilityState === "visible" && wakeLock === null) {
+    await acquireWakeLock();
+  }
+});
+
+/* ============================================================
+   Bluetooth
+   ============================================================ */
+async function connectBike() {
+  log("Otwieram wybór urządzenia Bluetooth...");
+  bleDevice = await navigator.bluetooth.requestDevice({
+    filters: [{ services: [FITNESS_MACHINE_SERVICE] }],
+  });
+  log(`Wybrano: ${bleDevice.name || "(urządzenie bez nazwy)"}`);
+
+  bleDevice.addEventListener("gattserverdisconnected", onBikeDisconnected);
+
+  bleServer = await bleDevice.gatt.connect();
+  const service = await bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE);
+  bleChar = await service.getCharacteristic(INDOOR_BIKE_DATA_CHAR);
+
+  bleChar.addEventListener("characteristicvaluechanged", onBikeNotification);
+  await bleChar.startNotifications();
+  log("Połączono z rowerem. Odbieram dane...");
+}
+
+function onBikeNotification(event) {
+  latestSample = decodeIndoorBikeData(event.target.value);
+  updateLiveStats(latestSample);
+}
+
+function onBikeDisconnected() {
+  if (isRecording) {
+    log("Rower rozłączony niespodziewanie — kończę trening.");
+    stopRecording();
+  }
+}
+
+async function disconnectBike() {
+  try {
+    if (bleChar) await bleChar.stopNotifications();
+    if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+  } catch (err) {
+    log(`Błąd przy rozłączaniu: ${err.message}`);
+  }
+}
+
+/* ============================================================
+   Nagrywanie — próbkowanie co N sekund, zapis do arkusza
+   ============================================================ */
+function startSampling() {
+  samplingTimer = setInterval(async () => {
+    if (Object.keys(latestSample).length === 0) return;
+    const sample = { ...latestSample };
+    history.push(sample);
+
+    const row = [
+      sessionId,
+      new Date().toISOString(),
+      sample.elapsed_s ?? "",
+      sample.speed_kmh ?? "",
+      sample.cadence_rpm ?? "",
+      sample.distance_m ?? "",
+      sample.resistance_level ?? "",
+      sample.power_w ?? "",
+      sample.heart_rate_bpm ?? "",
+      sample.energy_total_kcal ?? "",
+      sample.energy_per_hour_kcal ?? "",
+      sample.energy_per_minute_kcal ?? "",
+    ];
+    await sendToSheets("sample", row);
+
+    sparklineData.push(sample.speed_kmh ?? 0);
+    if (sparklineData.length > 60) sparklineData.shift();
+    drawSparkline();
+
+    log(
+      `[${new Date().toLocaleTimeString("pl-PL")}] ` +
+      `speed=${sample.speed_kmh ?? "-"} cadence=${sample.cadence_rpm ?? "-"} ` +
+      `power=${sample.power_w ?? "-"} HR=${sample.heart_rate_bpm ?? "-"}`
+    );
+  }, CONFIG.SAMPLE_INTERVAL_S * 1000);
+}
+
+function stopSampling() {
+  if (samplingTimer) clearInterval(samplingTimer);
+  samplingTimer = null;
+}
+
+/* ============================================================
+   Podsumowanie — przycinanie brzegów + statystyki (lustrzane
+   odbicie logiki z bike_core.py)
+   ============================================================ */
+function trimIdleEdges(hist) {
+  if (!CONFIG.TRIM_IDLE_EDGES) return hist;
+  const activeIdx = [];
+  hist.forEach((h, i) => {
+    if ((h.speed_kmh ?? 0) > CONFIG.IDLE_SPEED_THRESHOLD_KMH) activeIdx.push(i);
+  });
+  if (activeIdx.length === 0) return hist;
+  const first = activeIdx[0];
+  const last = activeIdx[activeIdx.length - 1];
+  const trimmedStart = first;
+  const trimmedEnd = hist.length - 1 - last;
+  if (trimmedStart || trimmedEnd) {
+    log(`  Przycinam podsumowanie: pomijam ${trimmedStart} próbek na starcie i ${trimmedEnd} na końcu.`);
+  }
+  return hist.slice(first, last + 1);
+}
+
+function mean(arr) {
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+function formatDuration(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function buildSummary() {
+  const active = trimIdleEdges(history);
+  const col = (key) => active.map((h) => h[key]).filter((v) => v !== undefined);
+
+  const speeds = col("speed_kmh");
+  const cadences = col("cadence_rpm");
+  const powers = col("power_w");
+  const resistances = col("resistance_level");
+  const hrs = col("heart_rate_bpm");
+  const distances = col("distance_m");
+  const energies = col("energy_total_kcal");
+  const elapsedVals = col("elapsed_s");
+
+  const durationS = elapsedVals.length
+    ? Math.max(...elapsedVals) - Math.min(...elapsedVals)
+    : Math.round((Date.now() - startTime.getTime()) / 1000);
+
+  const endTime = new Date();
+
+  const summary = {
+    session_id: sessionId,
+    date: startTime.toISOString().slice(0, 10),
+    start: startTime.toTimeString().slice(0, 8),
+    end: endTime.toTimeString().slice(0, 8),
+    duration_str: formatDuration(durationS),
+    distance_m: distances.length ? Math.max(...distances) : "",
+    avg_speed: speeds.length ? Math.round(mean(speeds) * 100) / 100 : "",
+    max_speed: speeds.length ? Math.max(...speeds) : "",
+    avg_cadence: cadences.length ? Math.round(mean(cadences) * 10) / 10 : "",
+    max_cadence: cadences.length ? Math.max(...cadences) : "",
+    avg_power: powers.length ? Math.round(mean(powers) * 10) / 10 : "",
+    max_power: powers.length ? Math.max(...powers) : "",
+    avg_resistance: resistances.length ? Math.round(mean(resistances) * 10) / 10 : "",
+    avg_hr: hrs.length ? Math.round(mean(hrs) * 10) / 10 : "",
+    max_hr: hrs.length ? Math.max(...hrs) : "",
+    total_energy: energies.length ? Math.max(...energies) : "",
+  };
+
+  const row = [
+    summary.session_id, summary.date, summary.start, summary.end,
+    summary.duration_str, summary.distance_m, summary.avg_speed, summary.max_speed,
+    summary.avg_cadence, summary.max_cadence, summary.avg_power, summary.max_power,
+    summary.avg_resistance, summary.avg_hr, summary.max_hr, summary.total_energy,
+  ];
+
+  return { summary, row };
+}
+
+/* ============================================================
+   Sterowanie: Start / Stop
+   ============================================================ */
+async function startRecording() {
+  try {
+    setStatus("Łączę się...", "connecting");
+    await connectBike();
+
+    sessionId = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 15);
+    startTime = new Date();
+    latestSample = {};
+    history = [];
+    sparklineData = [];
+    hideSummary();
+
+    await acquireWakeLock();
+    startSampling();
+
+    isRecording = true;
+    setStatus("Trening w toku", "recording");
+    setRecordButton(true);
+  } catch (err) {
+    log(`Błąd startu: ${err.message}`);
+    setStatus("Błąd", "error");
+    isRecording = false;
+    setRecordButton(false);
+  }
+}
+
+async function stopRecording() {
+  isRecording = false;
+  setRecordButton(false);
+  setStatus("Zapisuję podsumowanie...", "connecting");
+
+  stopSampling();
+  await disconnectBike();
+  releaseWakeLock();
+
+  const { summary, row } = buildSummary();
+  await sendToSheets("summary", row);
+  showSummary(summary);
+
+  setStatus("Gotowy", "");
+  log("=== Trening zakończony i zapisany ===\n");
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+function log(msg) {
+  const box = document.getElementById("logBox");
+  box.textContent += "\n" + msg;
+  box.scrollTop = box.scrollHeight;
+}
+
+function setStatus(text, cls) {
+  const pill = document.getElementById("statusPill");
+  pill.textContent = text;
+  pill.className = cls || "";
+}
+
+function setRecordButton(recording) {
+  const btn = document.getElementById("recordBtn");
+  const label = document.getElementById("recordBtnLabel");
+  const wrap = document.getElementById("recordBtnWrap");
+  btn.classList.toggle("recording", recording);
+  label.textContent = recording ? "Stop" : "Start";
+  btn.querySelector(".icon").textContent = recording ? "\u25A0" : "\u25CF";
+
+  let ring = document.getElementById("pulseRing");
+  if (recording && !ring) {
+    ring = document.createElement("div");
+    ring.id = "pulseRing";
+    ring.className = "pulse-ring";
+    wrap.appendChild(ring);
+  } else if (!recording && ring) {
+    ring.remove();
+  }
+}
+
+function updateLiveStats(sample) {
+  document.getElementById("statSpeed").textContent = sample.speed_kmh ?? "—";
+  document.getElementById("statCadence").textContent = sample.cadence_rpm ?? "—";
+  document.getElementById("statPower").textContent = sample.power_w ?? "—";
+  document.getElementById("statHr").textContent = sample.heart_rate_bpm ?? "—";
+}
+
+function hideSummary() {
+  document.getElementById("summaryCard").classList.remove("visible");
+}
+
+function showSummary(summary) {
+  document.getElementById("sumDuration").textContent = summary.duration_str;
+  document.getElementById("sumDistance").textContent = summary.distance_m !== "" ? `${summary.distance_m} m` : "—";
+  document.getElementById("sumSpeed").textContent =
+    `${summary.avg_speed ?? "—"} / ${summary.max_speed ?? "—"} km/h`;
+  document.getElementById("sumCadence").textContent =
+    `${summary.avg_cadence ?? "—"} / ${summary.max_cadence ?? "—"} obr/min`;
+  document.getElementById("sumPower").textContent =
+    `${summary.avg_power ?? "—"} / ${summary.max_power ?? "—"} W`;
+  document.getElementById("sumHr").textContent =
+    `${summary.avg_hr ?? "—"} / ${summary.max_hr ?? "—"} bpm`;
+  document.getElementById("summaryCard").classList.add("visible");
+}
+
+function drawSparkline() {
+  const canvas = document.getElementById("sparkline");
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  if (sparklineData.length < 2) return;
+  const max = Math.max(...sparklineData, 1);
+  const step = w / (sparklineData.length - 1);
+
+  ctx.beginPath();
+  sparklineData.forEach((v, i) => {
+    const x = i * step;
+    const y = h - (v / max) * (h - 6) - 3;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = "#2FD9C4";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+/* ============================================================
+   Ustawienia (URL Apps Script)
+   ============================================================ */
+function checkConfig() {
+  const warning = document.getElementById("configWarning");
+  warning.classList.toggle("visible", !CONFIG.APPS_SCRIPT_URL);
+}
+
+document.getElementById("settingsBtn").addEventListener("click", async () => {
+  const current = CONFIG.APPS_SCRIPT_URL || "";
+  const url = prompt("Wklej URL wdrożenia Google Apps Script (kończy się na /exec):", current);
+  if (url !== null) {
+    CONFIG.APPS_SCRIPT_URL = url.trim();
+    localStorage.setItem("rowerLoggerAppsScriptUrl", CONFIG.APPS_SCRIPT_URL);
+    checkConfig();
+    log(CONFIG.APPS_SCRIPT_URL ? "Zapisano adres Apps Script." : "Wyczyszczono adres Apps Script.");
+  }
+});
+
+document.getElementById("recordBtn").addEventListener("click", () => {
+  if (!navigator.bluetooth) {
+    alert("Ta przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Samsung Internet.");
+    return;
+  }
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+});
+
+checkConfig();
+retryOfflineQueue();
