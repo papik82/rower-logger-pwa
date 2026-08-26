@@ -5,8 +5,14 @@
    (patrz DEPLOY.md, sekcja "Apps Script")
    ============================================================ */
 const CONFIG = {
-  // URL wdrożonego Google Apps Script (kończy się na /exec)
-  APPS_SCRIPT_URL: localStorage.getItem("rowerLoggerAppsScriptUrl") || "",
+  // URL wdrożonego Google Apps Script (kończy się na /exec).
+  // Zaszyty na stałe jako wartość domyślna — nie trzeba go wpisywać
+  // ręcznie po każdym wyczyszczeniu danych przeglądarki. Ustawienia
+  // w aplikacji (localStorage) nadpisują tę wartość tylko jeśli
+  // kiedykolwiek zmienisz wdrożenie i wklejesz nowy URL ręcznie.
+  APPS_SCRIPT_URL:
+    localStorage.getItem("rowerLoggerAppsScriptUrl") ||
+    "https://script.google.com/macros/s/AKfycbwQNzfoCtdyPGG3VFp9SJB_J8IRqwQoro9pEnAgsQGJ4wGuJAXqFXWXx1U8WDT4HSZb/exec",
   SAMPLE_INTERVAL_S: 5,
   IDLE_SPEED_THRESHOLD_KMH: 0.5,
   TRIM_IDLE_EDGES: true,
@@ -15,7 +21,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.1";
+const APP_VERSION = "2026-08-26.2";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
