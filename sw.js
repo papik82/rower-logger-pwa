@@ -1,4 +1,4 @@
-const CACHE_NAME = "rower-logger-v1";
+const CACHE_NAME = "rower-logger-v2";
 const SHELL_FILES = [
   "./index.html",
   "./app.js",
@@ -23,12 +23,19 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Tylko powłoka aplikacji jest cache'owana — dane treningowe i połączenie
-// Bluetooth zawsze wymagają aktywnego połączenia, więc nie ma sensu (i nie
-// da się) używać tej aplikacji w pełni offline. Cache przyspiesza tylko
-// ponowne otwarcie/instalację.
+// Strategia "najpierw sieć": zawsze próbuje pobrać świeżą wersję, a cache
+// to tylko rezerwa na wypadek braku internetu (i tak potrzebnego do
+// Bluetooth/Sheets, więc offline i tak niewiele tu zdziała). Dzięki temu
+// aktualizacje plików na GitHubie są widoczne od razu, bez konieczności
+// ręcznego czyszczenia pamięci podręcznej przy każdej zmianie.
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
