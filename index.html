@@ -237,7 +237,7 @@
   <div id="resistanceCard" class="stat-card">
     <div>
       <p class="label">Opór na rowerze</p>
-      <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 10</span></p>
+      <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 16</span></p>
     </div>
     <div class="resistance-buttons">
       <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
@@ -297,11 +297,11 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=7').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=8').catch(() => {});
   });
 }
 </script>

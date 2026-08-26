@@ -21,7 +21,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.7";
+const APP_VERSION = "2026-08-26.8";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -557,7 +557,7 @@ document.getElementById("settingsBtn").addEventListener("click", async () => {
 function updateResistanceDisplay() {
   document.getElementById("resistanceValue").textContent = manualResistance;
   document.getElementById("resistanceMinus").disabled = manualResistance <= 1;
-  document.getElementById("resistancePlus").disabled = manualResistance >= 10;
+  document.getElementById("resistancePlus").disabled = manualResistance >= 16;
 }
 
 document.getElementById("resistanceMinus").addEventListener("click", () => {
@@ -565,15 +565,15 @@ document.getElementById("resistanceMinus").addEventListener("click", () => {
   manualResistance -= 1;
   localStorage.setItem("rowerLoggerResistance", manualResistance);
   updateResistanceDisplay();
-  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/10.`);
+  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/16.`);
 });
 
 document.getElementById("resistancePlus").addEventListener("click", () => {
-  if (manualResistance >= 10) return;
+  if (manualResistance >= 16) return;
   manualResistance += 1;
   localStorage.setItem("rowerLoggerResistance", manualResistance);
   updateResistanceDisplay();
-  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/10.`);
+  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/16.`);
 });
 
 document.getElementById("recordBtn").addEventListener("click", () => {
