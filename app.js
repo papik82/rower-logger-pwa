@@ -497,13 +497,18 @@ function drawSparkline() {
   ctx.clearRect(0, 0, w, h);
 
   if (sparklineData.length < 2) return;
-  const max = Math.max(...sparklineData, 1);
+  const max = Math.max(...sparklineData);
+  const min = Math.min(...sparklineData);
+  const range = max - min || 1;
   const step = w / (sparklineData.length - 1);
+
+  document.getElementById("sparkMax").textContent = max.toFixed(1);
+  document.getElementById("sparkMin").textContent = min.toFixed(1);
 
   ctx.beginPath();
   sparklineData.forEach((v, i) => {
     const x = i * step;
-    const y = h - (v / max) * (h - 6) - 3;
+    const y = h - ((v - min) / range) * (h - 6) - 3;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });

@@ -119,8 +119,18 @@
   .stat-card .value { font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; margin: 0; }
   .stat-card .unit { font-size: 13px; color: var(--text-muted); margin-left: 4px; }
 
-  #sparklineWrap { padding: 4px 0; }
+  #sparklineWrap { padding: 14px 16px; }
+  #sparklineChartWrap { position: relative; margin-top: 6px; }
   #sparkline { width: 100%; height: 46px; display: block; }
+  .sparkline-axis-label {
+    position: absolute;
+    right: 0;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    top: -2px;
+  }
+  .sparkline-axis-min { top: auto; bottom: -2px; }
 
   #logBox {
     background: var(--surface);
@@ -218,8 +228,13 @@
     </div>
   </div>
 
-  <div id="sparklineWrap">
-    <canvas id="sparkline"></canvas>
+  <div id="sparklineWrap" class="stat-card">
+    <p class="label">Prędkość (km/h) — trend, ostatnie ~5 min</p>
+    <div id="sparklineChartWrap">
+      <span id="sparkMax" class="sparkline-axis-label"></span>
+      <span id="sparkMin" class="sparkline-axis-label sparkline-axis-min"></span>
+      <canvas id="sparkline" role="img" aria-label="Wykres trendu prędkości z ostatnich pięciu minut treningu"></canvas>
+    </div>
   </div>
 
   <div id="summaryCard">
