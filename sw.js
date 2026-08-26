@@ -1,4 +1,4 @@
-const CACHE_NAME = "rower-logger-v2";
+const CACHE_NAME = "rower-logger-v4";
 const SHELL_FILES = [
   "./index.html",
   "./app.js",
@@ -30,7 +30,7 @@ self.addEventListener("activate", (event) => {
 // ręcznego czyszczenia pamięci podręcznej przy każdej zmianie.
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
