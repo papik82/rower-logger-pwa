@@ -159,6 +159,7 @@ let history = [];
 let samplingTimer = null;
 let elapsedTimer = null;
 let sparklineData = [];
+let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 10) || 5;
 
 /* ============================================================
    Wake Lock — nie pozwól zgasnąć ekranowi podczas nagrywania
@@ -237,7 +238,7 @@ async function disconnectBike() {
 function startSampling() {
   samplingTimer = setInterval(async () => {
     if (Object.keys(latestSample).length === 0) return;
-    const sample = { ...latestSample };
+    const sample = { ...latestSample, resistance_level: manualResistance };
     history.push(sample);
 
     const row = [
@@ -536,6 +537,34 @@ document.getElementById("settingsBtn").addEventListener("click", async () => {
   }
 });
 
+/* ============================================================
+   Ręczny opór — rower nie ma elektronicznej regulacji, więc
+   użytkownik ustawia wartość sam, przed i w trakcie treningu.
+   Zapisywana w tej samej kolumnie "Opór", którą wcześniej rower
+   i tak zawsze raportował jako 0.
+   ============================================================ */
+function updateResistanceDisplay() {
+  document.getElementById("resistanceValue").textContent = manualResistance;
+  document.getElementById("resistanceMinus").disabled = manualResistance <= 1;
+  document.getElementById("resistancePlus").disabled = manualResistance >= 10;
+}
+
+document.getElementById("resistanceMinus").addEventListener("click", () => {
+  if (manualResistance <= 1) return;
+  manualResistance -= 1;
+  localStorage.setItem("rowerLoggerResistance", manualResistance);
+  updateResistanceDisplay();
+  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/10.`);
+});
+
+document.getElementById("resistancePlus").addEventListener("click", () => {
+  if (manualResistance >= 10) return;
+  manualResistance += 1;
+  localStorage.setItem("rowerLoggerResistance", manualResistance);
+  updateResistanceDisplay();
+  if (isRecording) log(`  Opór zmieniony na ${manualResistance}/10.`);
+});
+
 document.getElementById("recordBtn").addEventListener("click", () => {
   if (!navigator.bluetooth) {
     alert("Ta przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Samsung Internet.");
@@ -549,4 +578,5 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 });
 
 checkConfig();
+updateResistanceDisplay();
 retryOfflineQueue();

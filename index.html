@@ -119,6 +119,35 @@
   .stat-card .value { font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; margin: 0; }
   .stat-card .unit { font-size: 13px; color: var(--text-muted); margin-left: 4px; }
 
+  #resistanceCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .resistance-buttons { display: flex; gap: 10px; flex-shrink: 0; }
+  .stepper-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--surface-2);
+    color: var(--accent);
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .stepper-btn:active { background: var(--accent-dim); }
+  .stepper-btn:disabled {
+    border-color: var(--border);
+    color: var(--text-muted);
+    cursor: default;
+    background: var(--surface-2);
+  }
+
   #sparklineWrap { padding: 14px 16px; }
   #sparklineChartWrap { position: relative; margin-top: 6px; }
   #sparkline { width: 100%; height: 46px; display: block; }
@@ -203,6 +232,17 @@
       <span class="icon">&#9679;</span>
       <span id="recordBtnLabel">Start</span>
     </button>
+  </div>
+
+  <div id="resistanceCard" class="stat-card">
+    <div>
+      <p class="label">Opór na rowerze</p>
+      <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 10</span></p>
+    </div>
+    <div class="resistance-buttons">
+      <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
+      <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
+    </div>
   </div>
 
   <div id="liveStats">
