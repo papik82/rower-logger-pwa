@@ -21,7 +21,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.5";
+const APP_VERSION = "2026-08-26.6";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
