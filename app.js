@@ -157,6 +157,7 @@ let startTime = null;
 let latestSample = {};
 let history = [];
 let samplingTimer = null;
+let elapsedTimer = null;
 let sparklineData = [];
 
 /* ============================================================
@@ -273,6 +274,25 @@ function stopSampling() {
 }
 
 /* ============================================================
+   Licznik czasu treningu — aktualizowany co sekundę, niezależnie
+   od interwału próbkowania danych z roweru
+   ============================================================ */
+function startElapsedTimer() {
+  updateElapsedDisplay();
+  elapsedTimer = setInterval(updateElapsedDisplay, 1000);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) clearInterval(elapsedTimer);
+  elapsedTimer = null;
+}
+
+function updateElapsedDisplay() {
+  const secs = Math.floor((Date.now() - startTime.getTime()) / 1000);
+  document.getElementById("statElapsed").textContent = formatDuration(secs);
+}
+
+/* ============================================================
    Podsumowanie — przycinanie brzegów + statystyki (lustrzane
    odbicie logiki z bike_core.py)
    ============================================================ */
@@ -370,6 +390,7 @@ async function startRecording() {
 
     await acquireWakeLock();
     startSampling();
+    startElapsedTimer();
 
     isRecording = true;
     setStatus("Trening w toku", "recording");
@@ -388,6 +409,7 @@ async function stopRecording() {
   setStatus("Zapisuję podsumowanie...", "connecting");
 
   stopSampling();
+  stopElapsedTimer();
   await disconnectBike();
   releaseWakeLock();
 
@@ -433,11 +455,16 @@ function setRecordButton(recording) {
   }
 }
 
+function fmtLive(value, decimals) {
+  if (value === undefined || value === null || Number.isNaN(value)) return "—";
+  return Number(value).toFixed(decimals);
+}
+
 function updateLiveStats(sample) {
-  document.getElementById("statSpeed").textContent = sample.speed_kmh ?? "—";
-  document.getElementById("statCadence").textContent = sample.cadence_rpm ?? "—";
-  document.getElementById("statPower").textContent = sample.power_w ?? "—";
-  document.getElementById("statHr").textContent = sample.heart_rate_bpm ?? "—";
+  document.getElementById("statSpeed").textContent = fmtLive(sample.speed_kmh, 1);
+  document.getElementById("statCadence").textContent = fmtLive(sample.cadence_rpm, 1);
+  document.getElementById("statPower").textContent = fmtLive(sample.power_w, 0);
+  document.getElementById("statHr").textContent = fmtLive(sample.heart_rate_bpm, 0);
 }
 
 function hideSummary() {
