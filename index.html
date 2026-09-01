@@ -131,6 +131,12 @@
     justify-content: space-between;
     gap: 12px;
   }
+  #bikeCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
   .hr-connect-btn {
     background: transparent;
     border: 1px solid var(--accent);
@@ -252,6 +258,22 @@
     </button>
   </div>
 
+  <div id="bikeCard" class="stat-card">
+    <div>
+      <p class="label">Rower</p>
+      <p class="value" id="bikeStatus" style="font-size: 15px;">Niepołączony</p>
+    </div>
+    <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
+  </div>
+
+  <div id="hrCard" class="stat-card">
+    <div>
+      <p class="label">Pasek pulsu</p>
+      <p class="value" id="hrStrapStatus" style="font-size: 15px;">Niepołączony</p>
+    </div>
+    <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
+  </div>
+
   <div id="resistanceCard" class="stat-card">
     <div>
       <p class="label">Opór na rowerze</p>
@@ -261,14 +283,6 @@
       <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
       <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
     </div>
-  </div>
-
-  <div id="hrCard" class="stat-card">
-    <div>
-      <p class="label">Pasek pulsu</p>
-      <p class="value" id="hrStrapStatus" style="font-size: 15px;">Niepołączony</p>
-    </div>
-    <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
   </div>
 
   <div id="liveStats">
@@ -323,11 +337,11 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=9').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=10').catch(() => {});
   });
 }
 </script>

@@ -21,7 +21,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.9";
+const APP_VERSION = "2026-08-26.10";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -180,6 +180,7 @@ async function sendToSheetsDirect(type, row) {
 let bleDevice = null;
 let bleServer = null;
 let bleChar = null;
+let bikeConnected = false;
 let hrDevice = null;
 let hrServer = null;
 let hrChar = null;
@@ -229,21 +230,28 @@ document.addEventListener("visibilitychange", async () => {
    Bluetooth
    ============================================================ */
 async function connectBike() {
-  log("Otwieram wybór urządzenia Bluetooth...");
-  bleDevice = await navigator.bluetooth.requestDevice({
-    filters: [{ services: [FITNESS_MACHINE_SERVICE] }],
-  });
-  log(`Wybrano: ${bleDevice.name || "(urządzenie bez nazwy)"}`);
+  try {
+    log("Otwieram wybór urządzenia Bluetooth...");
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [FITNESS_MACHINE_SERVICE] }],
+    });
+    log(`Wybrano: ${bleDevice.name || "(urządzenie bez nazwy)"}`);
 
-  bleDevice.addEventListener("gattserverdisconnected", onBikeDisconnected);
+    bleDevice.addEventListener("gattserverdisconnected", onBikeDisconnected);
 
-  bleServer = await bleDevice.gatt.connect();
-  const service = await bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE);
-  bleChar = await service.getCharacteristic(INDOOR_BIKE_DATA_CHAR);
+    bleServer = await bleDevice.gatt.connect();
+    const service = await bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE);
+    bleChar = await service.getCharacteristic(INDOOR_BIKE_DATA_CHAR);
 
-  bleChar.addEventListener("characteristicvaluechanged", onBikeNotification);
-  await bleChar.startNotifications();
-  log("Połączono z rowerem. Odbieram dane...");
+    bleChar.addEventListener("characteristicvaluechanged", onBikeNotification);
+    await bleChar.startNotifications();
+
+    bikeConnected = true;
+    updateBikeUI();
+    log("Połączono z rowerem. Odbieram dane...");
+  } catch (err) {
+    log(`Nie udało się połączyć roweru: ${err.message}`);
+  }
 }
 
 function onBikeNotification(event) {
@@ -253,9 +261,13 @@ function onBikeNotification(event) {
 }
 
 function onBikeDisconnected() {
+  bikeConnected = false;
+  updateBikeUI();
   if (isRecording) {
     log("Rower rozłączony niespodziewanie — kończę trening.");
     stopRecording();
+  } else {
+    log("Rower rozłączony.");
   }
 }
 
@@ -264,8 +276,13 @@ async function disconnectBike() {
     if (bleChar) await bleChar.stopNotifications();
     if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
   } catch (err) {
-    log(`Błąd przy rozłączaniu: ${err.message}`);
+    log(`Błąd przy rozłączaniu roweru: ${err.message}`);
   }
+}
+
+function updateBikeUI() {
+  document.getElementById("bikeStatus").textContent = bikeConnected ? "Połączony" : "Niepołączony";
+  document.getElementById("bikeConnectBtn").textContent = bikeConnected ? "Rozłącz" : "Połącz";
 }
 
 /* ============================================================
@@ -480,13 +497,13 @@ function buildSummary() {
    Sterowanie: Start / Stop
    ============================================================ */
 async function startRecording() {
+  if (!bikeConnected || !bleDevice || !bleDevice.gatt.connected) {
+    alert('Najpierw połącz rower przyciskiem "Połącz" przy karcie Rower.');
+    return;
+  }
   try {
-    setStatus("Łączę się...", "connecting");
-    await connectBike();
-
     sessionId = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 15);
     startTime = new Date();
-    latestSample = {};
     history = [];
     sparklineData = [];
     hideSummary();
@@ -513,7 +530,6 @@ async function stopRecording() {
 
   stopSampling();
   stopElapsedTimer();
-  await disconnectBike();
   releaseWakeLock();
 
   const { summary, row } = buildSummary();
@@ -664,6 +680,18 @@ document.getElementById("resistancePlus").addEventListener("click", () => {
   localStorage.setItem("rowerLoggerResistance", manualResistance);
   updateResistanceDisplay();
   if (isRecording) log(`  Opór zmieniony na ${manualResistance}/16.`);
+});
+
+document.getElementById("bikeConnectBtn").addEventListener("click", () => {
+  if (!navigator.bluetooth) {
+    alert("Ta przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Samsung Internet.");
+    return;
+  }
+  if (bikeConnected) {
+    disconnectBike();
+  } else {
+    connectBike();
+  }
 });
 
 document.getElementById("hrConnectBtn").addEventListener("click", () => {
