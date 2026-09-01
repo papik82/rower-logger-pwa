@@ -19,6 +19,7 @@
     --text: #F2F5F4;
     --text-muted: #8CA0A6;
     --border: #2A353A;
+    --hr-color: #FF9F43;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -176,6 +177,11 @@
   }
 
   #sparklineWrap { padding: 14px 16px; }
+  .sparkline-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .sparkline-header .label { margin: 0; }
+  .sparkline-legend { display: flex; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
   #sparklineChartWrap { position: relative; margin-top: 6px; }
   #sparkline { width: 100%; height: 46px; display: block; }
   .sparkline-axis-label {
@@ -187,6 +193,7 @@
     top: -2px;
   }
   .sparkline-axis-min { top: auto; bottom: -2px; }
+  .sparkline-axis-label-left { right: auto; left: 0; color: var(--hr-color); }
 
   #logBox {
     background: var(--surface);
@@ -314,11 +321,19 @@
   </div>
 
   <div id="sparklineWrap" class="stat-card">
-    <p class="label">Prędkość (km/h) — trend, ostatnie ~5 min</p>
+    <div class="sparkline-header">
+      <p class="label">Prędkość i puls — trend, ostatnie ~5 min</p>
+      <div class="sparkline-legend">
+        <span class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span>km/h</span>
+        <span class="legend-item"><span class="legend-dot" style="background: var(--hr-color);"></span>bpm</span>
+      </div>
+    </div>
     <div id="sparklineChartWrap">
       <span id="sparkMax" class="sparkline-axis-label"></span>
       <span id="sparkMin" class="sparkline-axis-label sparkline-axis-min"></span>
-      <canvas id="sparkline" role="img" aria-label="Wykres trendu prędkości z ostatnich pięciu minut treningu"></canvas>
+      <span id="hrSparkMax" class="sparkline-axis-label sparkline-axis-label-left"></span>
+      <span id="hrSparkMin" class="sparkline-axis-label sparkline-axis-label-left sparkline-axis-min"></span>
+      <canvas id="sparkline" role="img" aria-label="Wykres trendu prędkości i pulsu z ostatnich pięciu minut treningu"></canvas>
     </div>
   </div>
 
@@ -342,11 +357,11 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=12"></script>
+<script src="app.js?v=13"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=12').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=13').catch(() => {});
   });
 }
 </script>

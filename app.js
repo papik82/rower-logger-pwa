@@ -21,7 +21,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.12";
+const APP_VERSION = "2026-08-26.13";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -195,6 +195,7 @@ let history = [];
 let samplingTimer = null;
 let elapsedTimer = null;
 let sparklineData = [];
+let hrSparklineData = [];
 let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 10) || 5;
 
 /* ============================================================
@@ -378,6 +379,8 @@ function startSampling() {
 
     sparklineData.push(sample.speed_kmh ?? 0);
     if (sparklineData.length > 60) sparklineData.shift();
+    hrSparklineData.push(sample.heart_rate_bpm ?? 0);
+    if (hrSparklineData.length > 60) hrSparklineData.shift();
     drawSparkline();
 
     log(
@@ -506,6 +509,7 @@ async function startRecording() {
     startTime = new Date();
     history = [];
     sparklineData = [];
+    hrSparklineData = [];
     hideSummary();
 
     await acquireWakeLock();
@@ -603,6 +607,27 @@ function showSummary(summary) {
   document.getElementById("summaryCard").classList.add("visible");
 }
 
+function drawSparklineSeries(ctx, data, w, h, color, maxLabelId, minLabelId, decimals) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const step = w / (data.length - 1);
+
+  document.getElementById(maxLabelId).textContent = max.toFixed(decimals);
+  document.getElementById(minLabelId).textContent = min.toFixed(decimals);
+
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = i * step;
+    const y = h - ((v - min) / range) * (h - 6) - 3;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
 function drawSparkline() {
   const canvas = document.getElementById("sparkline");
   const ctx = canvas.getContext("2d");
@@ -615,24 +640,8 @@ function drawSparkline() {
   ctx.clearRect(0, 0, w, h);
 
   if (sparklineData.length < 2) return;
-  const max = Math.max(...sparklineData);
-  const min = Math.min(...sparklineData);
-  const range = max - min || 1;
-  const step = w / (sparklineData.length - 1);
-
-  document.getElementById("sparkMax").textContent = max.toFixed(1);
-  document.getElementById("sparkMin").textContent = min.toFixed(1);
-
-  ctx.beginPath();
-  sparklineData.forEach((v, i) => {
-    const x = i * step;
-    const y = h - ((v - min) / range) * (h - 6) - 3;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = "#2FD9C4";
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  drawSparklineSeries(ctx, sparklineData, w, h, "#2FD9C4", "sparkMax", "sparkMin", 1);
+  drawSparklineSeries(ctx, hrSparklineData, w, h, "#FF9F43", "hrSparkMax", "hrSparkMin", 0);
 }
 
 /* ============================================================
