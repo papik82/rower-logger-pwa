@@ -12,11 +12,28 @@ przeglądarce desktopowej, bez wymogu Web Bluetooth — analiza tylko
 czyta dane z arkusza, nie łączy się z rowerem).
 
 ### Wymagany fundament techniczny
-- [ ] Rozbudować `apps-script.gs`: właściwy `doGet(e)` zwracający dane
+- [x] Rozbudować `apps-script.gs`: właściwy `doGet(e)` zwracający dane
       z `Trening_Szczegoly` i `Trening_Podsumowania` jako JSON
       (zamiast obecnego stubu z samym komunikatem statusu)
 - [ ] Rozważyć limit/paginację przy odczycie (żeby przy setkach
       treningów odpowiedź nie była zbyt ciężka)
+
+### Architektura widoku (ustalone)
+- [ ] Osobna strona `analiza.html` w tym samym repozytorium (nie
+      zakładka w `index.html`) — prościej, i nie wymaga Bluetootha,
+      więc działa w każdej przeglądarce niezależnie od tego, gdzie
+      się ją otworzy
+- [ ] Wydzielić wspólny plik `styles.css` z dotychczasowego CSS
+      w `index.html`, użyć go też w `analiza.html` — zapewnia spójność
+      wizualną (te same kolory, karty, typografia) i unika duplikacji
+      przy przyszłych zmianach wyglądu
+- [ ] Przycisk/link "📊 Analiza" w `index.html` prowadzący do
+      `analiza.html`
+- [ ] Link powrotny "◀ Rejestrowanie treningu" w `analiza.html`
+      prowadzący z powrotem do `index.html`
+- [ ] Dodać `analiza.html` (i jej plik JS, jeśli osobny) do listy
+      cache'owanych plików w `sw.js` (`SHELL_FILES`) oraz objąć tym
+      samym mechanizmem wersjonowania `?v=`, co `app.js`
 
 ### Zakres merytoryczny (wszystko naraz, jeden moduł)
 - [ ] **Historia treningów** — lista/tabela dotychczasowych sesji
