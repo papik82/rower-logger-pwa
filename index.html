@@ -125,6 +125,24 @@
     justify-content: space-between;
     gap: 12px;
   }
+  #hrCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .hr-connect-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .hr-connect-btn:active { background: var(--accent-dim); }
   .resistance-buttons { display: flex; gap: 10px; flex-shrink: 0; }
   .stepper-btn {
     width: 52px; height: 52px;
@@ -245,6 +263,14 @@
     </div>
   </div>
 
+  <div id="hrCard" class="stat-card">
+    <div>
+      <p class="label">Pasek pulsu</p>
+      <p class="value" id="hrStrapStatus" style="font-size: 15px;">Niepołączony</p>
+    </div>
+    <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
+  </div>
+
   <div id="liveStats">
     <div class="stat-card">
       <p class="label">Czas</p>
@@ -297,11 +323,11 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=8').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=9').catch(() => {});
   });
 }
 </script>

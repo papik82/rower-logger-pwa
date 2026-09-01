@@ -21,10 +21,12 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.8";
+const APP_VERSION = "2026-08-26.9";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
+const HEART_RATE_SERVICE = 0x180d;
+const HEART_RATE_MEASUREMENT_CHAR = "00002a37-0000-1000-8000-00805f9b34fb";
 
 const DETAIL_HEADERS_ORDER = [
   "session_id", "timestamp", "elapsed_s", "speed_kmh", "cadence_rpm",
@@ -89,6 +91,23 @@ function decodeIndoorBikeData(dataView) {
   if (flags & 0x1000) idx += 2; // remaining time — pomijamy
 
   return result;
+}
+
+/* ============================================================
+   Dekodowanie standardowego Heart Rate Measurement (0x2A37) —
+   ten sam otwarty protokół BLE, którego używa pasek. Uwzględnia
+   flagę "sensor contact": jeśli pasek zgłasza brak kontaktu ze
+   skórą, odczyt jest odrzucany zamiast zwracać mylącą wartość.
+   ============================================================ */
+function decodeHeartRateMeasurement(dataView) {
+  const flags = dataView.getUint8(0);
+  const is16bit = flags & 0x01;
+  const contactSupported = (flags >> 1) & 0x01;
+  const contactDetected = (flags >> 2) & 0x01;
+
+  if (contactSupported && !contactDetected) return null;
+
+  return is16bit ? dataView.getUint16(1, true) : dataView.getUint8(1);
 }
 
 /* ============================================================
@@ -161,6 +180,11 @@ async function sendToSheetsDirect(type, row) {
 let bleDevice = null;
 let bleServer = null;
 let bleChar = null;
+let hrDevice = null;
+let hrServer = null;
+let hrChar = null;
+let hrConnected = false;
+let hrLatestValue = null;
 let wakeLock = null;
 let isRecording = false;
 let sessionId = null;
@@ -225,6 +249,7 @@ async function connectBike() {
 function onBikeNotification(event) {
   latestSample = decodeIndoorBikeData(event.target.value);
   updateLiveStats(latestSample);
+  refreshHrDisplay();
 }
 
 function onBikeDisconnected() {
@@ -244,12 +269,78 @@ async function disconnectBike() {
 }
 
 /* ============================================================
+   Pasek pulsu — niezależne, drugie połączenie BLE (standardowy
+   Heart Rate Service). Priorytet nad czujnikiem w uchwytach
+   roweru: gdy pasek jest połączony i ma odczyt, on wygrywa;
+   gdy się rozłączy, automatycznie wracamy do uchwytów.
+   ============================================================ */
+async function connectHrStrap() {
+  try {
+    log("Otwieram wybór paska pulsu...");
+    hrDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [HEART_RATE_SERVICE] }],
+    });
+    hrDevice.addEventListener("gattserverdisconnected", onHrDisconnected);
+
+    hrServer = await hrDevice.gatt.connect();
+    const service = await hrServer.getPrimaryService(HEART_RATE_SERVICE);
+    hrChar = await service.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR);
+    hrChar.addEventListener("characteristicvaluechanged", onHrNotification);
+    await hrChar.startNotifications();
+
+    hrConnected = true;
+    updateHrStrapUI();
+    log(`Pasek pulsu połączony: ${hrDevice.name || "(bez nazwy)"}`);
+  } catch (err) {
+    log(`Nie udało się połączyć paska pulsu: ${err.message}`);
+  }
+}
+
+function onHrNotification(event) {
+  const value = decodeHeartRateMeasurement(event.target.value);
+  if (value !== null) hrLatestValue = value;
+  refreshHrDisplay();
+}
+
+function onHrDisconnected() {
+  hrConnected = false;
+  hrLatestValue = null;
+  updateHrStrapUI();
+  refreshHrDisplay();
+  log("Pasek pulsu rozłączony — wracam do czujnika w uchwytach roweru.");
+}
+
+function disconnectHrStrap() {
+  if (hrDevice && hrDevice.gatt.connected) {
+    hrDevice.gatt.disconnect(); // onHrDisconnected zajmie się resztą
+  }
+}
+
+function updateHrStrapUI() {
+  document.getElementById("hrStrapStatus").textContent = hrConnected ? "Połączony" : "Niepołączony";
+  document.getElementById("hrConnectBtn").textContent = hrConnected ? "Rozłącz" : "Połącz";
+}
+
+function getEffectiveHeartRate() {
+  if (hrConnected && hrLatestValue !== null) return hrLatestValue;
+  return latestSample.heart_rate_bpm; // zapasowo: uchwyty roweru (może być undefined)
+}
+
+function refreshHrDisplay() {
+  document.getElementById("statHr").textContent = fmtLive(getEffectiveHeartRate(), 0);
+}
+
+/* ============================================================
    Nagrywanie — próbkowanie co N sekund, zapis do arkusza
    ============================================================ */
 function startSampling() {
   samplingTimer = setInterval(async () => {
     if (Object.keys(latestSample).length === 0) return;
-    const sample = { ...latestSample, resistance_level: manualResistance };
+    const sample = {
+      ...latestSample,
+      resistance_level: manualResistance,
+      heart_rate_bpm: getEffectiveHeartRate(),
+    };
     history.push(sample);
 
     const row = [
@@ -476,7 +567,6 @@ function updateLiveStats(sample) {
   document.getElementById("statSpeed").textContent = fmtLive(sample.speed_kmh, 1);
   document.getElementById("statCadence").textContent = fmtLive(sample.cadence_rpm, 1);
   document.getElementById("statPower").textContent = fmtLive(sample.power_w, 0);
-  document.getElementById("statHr").textContent = fmtLive(sample.heart_rate_bpm, 0);
 }
 
 function hideSummary() {
@@ -574,6 +664,18 @@ document.getElementById("resistancePlus").addEventListener("click", () => {
   localStorage.setItem("rowerLoggerResistance", manualResistance);
   updateResistanceDisplay();
   if (isRecording) log(`  Opór zmieniony na ${manualResistance}/16.`);
+});
+
+document.getElementById("hrConnectBtn").addEventListener("click", () => {
+  if (!navigator.bluetooth) {
+    alert("Ta przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Samsung Internet.");
+    return;
+  }
+  if (hrConnected) {
+    disconnectHrStrap();
+  } else {
+    connectHrStrap();
+  }
 });
 
 document.getElementById("recordBtn").addEventListener("click", () => {
