@@ -125,28 +125,31 @@
     justify-content: space-between;
     gap: 12px;
   }
-  #hrCard {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+  #connectRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
-  #bikeCard {
+  .connect-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 14px;
   }
+  .connect-card .label { margin: 0 0 2px; }
+  .connect-card .value { font-size: 14px; }
   .hr-connect-btn {
     background: transparent;
     border: 1px solid var(--accent);
     color: var(--accent);
     border-radius: 10px;
-    padding: 10px 18px;
-    font-size: 14px;
+    padding: 8px 0;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     flex-shrink: 0;
+    width: 100%;
   }
   .hr-connect-btn:active { background: var(--accent-dim); }
   .resistance-buttons { display: flex; gap: 10px; flex-shrink: 0; }
@@ -258,20 +261,22 @@
     </button>
   </div>
 
-  <div id="bikeCard" class="stat-card">
-    <div>
-      <p class="label">Rower</p>
-      <p class="value" id="bikeStatus" style="font-size: 15px;">Niepołączony</p>
+  <div id="connectRow">
+    <div id="bikeCard" class="stat-card connect-card">
+      <div>
+        <p class="label">Rower</p>
+        <p class="value" id="bikeStatus">Niepołączony</p>
+      </div>
+      <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
     </div>
-    <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
-  </div>
 
-  <div id="hrCard" class="stat-card">
-    <div>
-      <p class="label">Pasek pulsu</p>
-      <p class="value" id="hrStrapStatus" style="font-size: 15px;">Niepołączony</p>
+    <div id="hrCard" class="stat-card connect-card">
+      <div>
+        <p class="label">Pasek pulsu</p>
+        <p class="value" id="hrStrapStatus">Niepołączony</p>
+      </div>
+      <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
     </div>
-    <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
   </div>
 
   <div id="resistanceCard" class="stat-card">
@@ -337,11 +342,11 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=11').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=12').catch(() => {});
   });
 }
 </script>
