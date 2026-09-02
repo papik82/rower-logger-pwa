@@ -2,6 +2,32 @@
 
 const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
 
+// Arkusz zapisuje "Data" i "Start" jako pełne znaczniki UTC (komórki
+// data/godzina z Arkuszy Google są serializowane jako ISO). Formatujemy
+// je z powrotem na czas lokalny (strefa arkusza — Europe/Warsaw), więc
+// wynik jest ten sam niezależnie od strefy czasowej ustawionej na
+// telefonie, z którego ktoś akurat ogląda stronę.
+const COLUMN_FORMATTERS = {
+  "Data": (v) => formatDate(v),
+  "Start": (v) => formatTime(v),
+};
+
+function formatDate(value) {
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toLocaleDateString("pl-PL", { timeZone: "Europe/Warsaw" });
+}
+
+function formatTime(value) {
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toLocaleTimeString("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 async function loadResults() {
   const container = document.getElementById("resultsContainer");
   const url = getAppsScriptUrl();
@@ -50,7 +76,9 @@ function renderTable(container, rows) {
     const tr = document.createElement("tr");
     headers.forEach((h) => {
       const td = document.createElement("td");
-      td.textContent = row[h] ?? "";
+      const raw = row[h];
+      const format = COLUMN_FORMATTERS[h];
+      td.textContent = raw && format ? format(raw) : raw ?? "";
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
