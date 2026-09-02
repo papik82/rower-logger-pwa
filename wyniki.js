@@ -10,12 +10,20 @@ const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
 const COLUMN_FORMATTERS = {
   "Data": (v) => formatDate(v),
   "Start": (v) => formatTime(v),
+  "Czas trwania (HH:MM:SS)": (v) => formatDuration(v),
 };
 
 function formatDate(value) {
   const d = new Date(value);
   if (isNaN(d)) return value;
-  return d.toLocaleDateString("pl-PL", { timeZone: "Europe/Warsaw" });
+  const parts = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const get = (type) => parts.find((p) => p.type === type).value;
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 function formatTime(value) {
@@ -25,6 +33,24 @@ function formatTime(value) {
     timeZone: "Europe/Warsaw",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+// Arkusz czasem zapisuje ten czas trwania jako zwykły tekst "HH:MM:SS"
+// (bez zmian), a czasem — gdy Arkusze Google same rozpoznają go jako
+// wartość godzinową — jako pełny znacznik UTC, tak samo jak "Start".
+// Obsługujemy oba przypadki.
+function formatDuration(value) {
+  if (typeof value === "string" && /^\d{1,2}:\d{2}:\d{2}$/.test(value)) {
+    return value;
+  }
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toLocaleTimeString("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 
