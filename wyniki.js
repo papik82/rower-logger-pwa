@@ -1,5 +1,7 @@
 "use strict";
 
+const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
+
 async function loadResults() {
   const container = document.getElementById("resultsContainer");
   const url = getAppsScriptUrl();
@@ -15,7 +17,7 @@ async function loadResults() {
       container.textContent = "Błąd odczytu danych: " + (data.error || "nieznany błąd.");
       return;
     }
-    renderTable(container, data.detail || []);
+    renderTable(container, data.summary || []);
   } catch (err) {
     container.textContent = "Błąd połączenia z Google Apps Script: " + err.message;
   }
@@ -27,7 +29,7 @@ function renderTable(container, rows) {
     return;
   }
 
-  const headers = Object.keys(rows[0]);
+  const headers = Object.keys(rows[0]).filter((h) => !HIDDEN_COLUMNS.includes(h));
   const newestFirst = rows.slice().reverse();
 
   const table = document.createElement("table");
