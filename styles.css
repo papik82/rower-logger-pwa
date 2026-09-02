@@ -81,7 +81,8 @@ h1 {
 main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8px; }
 
 #topRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: stretch;
   gap: 12px;
 }
@@ -91,7 +92,6 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   align-items: center;
   padding: 8px 0;
   position: relative;
-  flex: 0 0 auto;
 }
 #recordBtn {
   width: 168px; height: 168px;
@@ -155,7 +155,6 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   gap: 12px;
 }
 #connectRow {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
