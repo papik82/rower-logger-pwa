@@ -49,6 +49,35 @@ h1 {
 #statusPill.recording { color: var(--accent); border-color: var(--accent); }
 #statusPill.error { color: var(--danger); border-color: var(--danger); }
 
+.nav-menu {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.nav-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.nav-tile:active { background: var(--surface-2); }
+.nav-tile.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 11px; font-weight: 500; }
+
 main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8px; }
 
 #recordBtnWrap {
@@ -244,15 +273,6 @@ a.secondary {
 
 footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--text-muted); opacity: 0.6; }
 
-.back-link {
-  display: inline-block;
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 13px;
-  padding: 6px 0;
-}
-.back-link:active { color: var(--accent); }
-
 .empty-state {
   background: var(--surface);
   border: 0.5px solid var(--border);
@@ -262,3 +282,35 @@ footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--
   color: var(--text-muted);
   font-size: 13px;
 }
+
+.data-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+}
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.data-table th, .data-table td {
+  padding: 8px 10px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 0.5px solid var(--border);
+}
+.data-table th:first-child, .data-table td:first-child,
+.data-table th:nth-child(2), .data-table td:nth-child(2) {
+  text-align: left;
+  font-variant-numeric: normal;
+}
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }

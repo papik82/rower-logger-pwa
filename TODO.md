@@ -19,19 +19,21 @@ czyta dane z arkusza, nie łączy się z rowerem).
       treningów odpowiedź nie była zbyt ciężka)
 
 ### Architektura widoku (ustalone)
-- [ ] Osobna strona `analiza.html` w tym samym repozytorium (nie
+- [x] Osobna strona `analiza.html` w tym samym repozytorium (nie
       zakładka w `index.html`) — prościej, i nie wymaga Bluetootha,
       więc działa w każdej przeglądarce niezależnie od tego, gdzie
       się ją otworzy
-- [ ] Wydzielić wspólny plik `styles.css` z dotychczasowego CSS
+- [x] Wydzielić wspólny plik `styles.css` z dotychczasowego CSS
       w `index.html`, użyć go też w `analiza.html` — zapewnia spójność
       wizualną (te same kolory, karty, typografia) i unika duplikacji
       przy przyszłych zmianach wyglądu
-- [ ] Przycisk/link "📊 Analiza" w `index.html` prowadzący do
-      `analiza.html`
-- [ ] Link powrotny "◀ Rejestrowanie treningu" w `analiza.html`
-      prowadzący z powrotem do `index.html`
-- [ ] Dodać `analiza.html` (i jej plik JS, jeśli osobny) do listy
+- [x] Jednolite menu nawigacyjne (bloki z ikonami: Trening / Analizy /
+      Wyniki / Ustawienia), wspólne dla wszystkich podstron —
+      `.nav-menu` w `styles.css`, znacznik aktywnej podstrony i obsługa
+      przycisku "Ustawienia" na stronach bez `app.js` w nowym `nav.js`.
+      Zastąpiło to wcześniejszy pomysł osobnego linku powrotnego —
+      jedna, spójna nawigacja zamiast dwóch równoległych
+- [x] Dodać `analiza.html` (i jej plik JS, jeśli osobny) do listy
       cache'owanych plików w `sw.js` (`SHELL_FILES`) oraz objąć tym
       samym mechanizmem wersjonowania `?v=`, co `app.js`
 
@@ -106,4 +108,9 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - Mini-wykres (sparkline) prędkości na żywo w trakcie treningu, z osią
 - Mechanizm wersjonowania plików (`?v=`) i przycisk wymuszenia
   aktualizacji aplikacji
+- `apps-script.gs`: `doGet(e)` zwracający dane z obu zakładek jako JSON
+- Wspólny `styles.css`, jednolite menu nawigacyjne (Trening / Analizy /
+  Wyniki / Ustawienia) na wszystkich podstronach
+- `wyniki.html` — surowa tabela wszystkich próbek z `Trening_Szczegoly`,
+  najnowsze na górze
 - Wersja desktopowa (Python, GUI) — obecnie zamrożona na rzecz PWA

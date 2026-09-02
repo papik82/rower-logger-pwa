@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 
@@ -16,6 +16,25 @@
   <h1>Rower Logger</h1>
   <span id="statusPill">Gotowy</span>
 </header>
+
+<nav class="nav-menu">
+  <a class="nav-tile" data-page="index.html" href="index.html">
+    <span class="nav-icon">🚴</span>
+    <span class="nav-label">Trening</span>
+  </a>
+  <a class="nav-tile" data-page="analiza.html" href="analiza.html">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Analizy</span>
+  </a>
+  <a class="nav-tile" data-page="wyniki.html" href="wyniki.html">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Wyniki</span>
+  </a>
+  <button type="button" class="nav-tile" id="settingsBtn" data-settings="managed">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Ustawienia</span>
+  </button>
+</nav>
 
 <div id="configWarning">
   Nie ustawiono adresu Google Apps Script. Otwórz <code>app.js</code> lub kliknij "Ustawienia" poniżej, żeby wkleić URL wdrożenia.
@@ -112,18 +131,17 @@
 
   <div id="logBox">Gotowy do połączenia z rowerem.</div>
 
-  <a class="secondary" href="analiza.html">📊 Analiza</a>
-  <button class="secondary" id="settingsBtn">Ustawienia</button>
   <button class="secondary" id="forceUpdateBtn">Wymuś aktualizację aplikacji</button>
 </main>
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="app.js?v=14"></script>
+<script src="nav.js?v=15"></script>
+<script src="app.js?v=15"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=14').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=15').catch(() => {});
   });
 }
 </script>
