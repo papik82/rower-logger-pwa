@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
 
@@ -41,28 +41,30 @@
 </div>
 
 <main>
-  <div id="recordBtnWrap">
-    <button id="recordBtn">
-      <span class="icon">&#9679;</span>
-      <span id="recordBtnLabel">Start</span>
-    </button>
-  </div>
-
-  <div id="connectRow">
-    <div id="bikeCard" class="stat-card connect-card">
-      <div>
-        <p class="label">Rower</p>
-        <p class="value" id="bikeStatus">Niepołączony</p>
-      </div>
-      <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
+  <div id="topRow">
+    <div id="recordBtnWrap">
+      <button id="recordBtn">
+        <span class="icon">&#9679;</span>
+        <span id="recordBtnLabel">Start</span>
+      </button>
     </div>
 
-    <div id="hrCard" class="stat-card connect-card">
-      <div>
-        <p class="label">Pasek pulsu</p>
-        <p class="value" id="hrStrapStatus">Niepołączony</p>
+    <div id="connectRow">
+      <div id="bikeCard" class="stat-card connect-card">
+        <div>
+          <p class="label">Rower</p>
+          <p class="value" id="bikeStatus">Niepołączony</p>
+        </div>
+        <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
       </div>
-      <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
+
+      <div id="hrCard" class="stat-card connect-card">
+        <div>
+          <p class="label">Puls</p>
+          <p class="value" id="hrStrapStatus">Niepołączony</p>
+        </div>
+        <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
+      </div>
     </div>
   </div>
 
@@ -136,12 +138,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<script src="nav.js?v=16"></script>
+<script src="app.js?v=16"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=15').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=16').catch(() => {});
   });
 }
 </script>
