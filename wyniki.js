@@ -2,6 +2,23 @@
 
 const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
 
+// Skrócone, dwuwierszowe etykiety nagłówków — pełne nazwy kolumn z
+// arkusza (z jednostką w nawiasie) niepotrzebnie rozszerzały tabelę.
+// Kolumny bez wpisu tutaj (np. "Data", "Start") zostają bez zmian.
+const COLUMN_LABELS = {
+  "Czas trwania (HH:MM:SS)": "Czas\ntrwania",
+  "Dystans całkowity (m)": "Dystans\n(m)",
+  "Śr. prędkość (km/h)": "Śr. prędkość\n(km/h)",
+  "Maks. prędkość (km/h)": "Maks. prędkość\n(km/h)",
+  "Śr. kadencja (obr/min)": "Śr. kadencja\n(obr/min)",
+  "Maks. kadencja (obr/min)": "Maks. kadencja\n(obr/min)",
+  "Śr. moc (W)": "Śr. moc\n(W)",
+  "Maks. moc (W)": "Maks. moc\n(W)",
+  "Śr. puls (bpm)": "Śr. puls\n(bpm)",
+  "Maks. puls (bpm)": "Maks. puls\n(bpm)",
+  "Kalorie łącznie (kcal)": "Kalorie\n(kcal)",
+};
+
 // Arkusz zapisuje "Data" i "Start" jako pełne znaczniki UTC (komórki
 // data/godzina z Arkuszy Google są serializowane jako ISO). Formatujemy
 // je z powrotem na czas lokalny (strefa arkusza — Europe/Warsaw), więc
@@ -91,7 +108,7 @@ function renderTable(container, rows) {
   const headRow = document.createElement("tr");
   headers.forEach((h) => {
     const th = document.createElement("th");
-    th.textContent = h;
+    th.textContent = COLUMN_LABELS[h] || h;
     headRow.appendChild(th);
   });
   thead.appendChild(headRow);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "rower-logger-v11";
+const CACHE_NAME = "rower-logger-v12";
 const SHELL_FILES = [
   "./index.html",
   "./app.js",
