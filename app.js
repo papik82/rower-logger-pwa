@@ -16,7 +16,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.21";
+const APP_VERSION = "2026-08-26.22";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -470,7 +470,7 @@ function buildSummary() {
     duration_str: formatDuration(durationS),
     distance_m: distances.length ? Math.max(...distances) : "",
     avg_speed: speeds.length ? Math.round(mean(speeds) * 100) / 100 : "",
-    max_speed: speeds.length ? Math.max(...speeds) : "",
+    max_speed: speeds.length ? Math.round(Math.max(...speeds) * 100) / 100 : "",
     avg_cadence: cadences.length ? Math.round(mean(cadences) * 10) / 10 : "",
     max_cadence: cadences.length ? Math.max(...cadences) : "",
     avg_power: powers.length ? Math.round(mean(powers) * 10) / 10 : "",

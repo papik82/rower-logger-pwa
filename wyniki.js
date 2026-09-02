@@ -71,6 +71,14 @@ function formatDuration(value) {
   });
 }
 
+// Niektóre starsze próbki prędkości mają błędy zaokrąglenia
+// zmiennoprzecinkowego (np. 29.400000000000002) — obcinamy je do
+// dwóch miejsc po przecinku przy wyświetlaniu.
+function formatNumber(value) {
+  if (typeof value !== "number") return value;
+  return Math.round(value * 100) / 100;
+}
+
 async function loadResults() {
   const container = document.getElementById("resultsContainer");
   const url = getAppsScriptUrl();
@@ -121,7 +129,7 @@ function renderTable(container, rows) {
       const td = document.createElement("td");
       const raw = row[h];
       const format = COLUMN_FORMATTERS[h];
-      td.textContent = raw && format ? format(raw) : raw ?? "";
+      td.textContent = (format && raw ? format(raw) : formatNumber(raw)) ?? "";
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
