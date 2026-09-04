@@ -16,7 +16,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.22";
+const APP_VERSION = "2026-08-26.23";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -655,6 +655,10 @@ document.getElementById("settingsBtn").addEventListener("click", async () => {
     localStorage.setItem("rowerLoggerAppsScriptUrl", CONFIG.APPS_SCRIPT_URL);
     checkConfig();
     log(CONFIG.APPS_SCRIPT_URL ? "Zapisano adres Apps Script." : "Wyczyszczono adres Apps Script.");
+
+    promptMaxHr();
+    const maxHr = getMaxHr();
+    log(maxHr ? `Tętno maksymalne: ${maxHr} bpm.` : "Tętno maksymalne nieustawione.");
   }
 });
 

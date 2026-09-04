@@ -47,9 +47,11 @@ czyta dane z arkusza, nie łączy się z rowerem).
       z historii
 - [ ] **Strefy tętna** — podział czasu treningu na strefy (na bazie
       tętna maksymalnego), wizualizacja % czasu w każdej strefie.
-      Domyślnie wyliczane automatycznie wzorem szacunkowym (220 − wiek),
-      z polem w Ustawieniach do wpisania własnej, znanej wartości
-      tętna maksymalnego, która nadpisuje wyliczenie wzorem
+      [x] Pole "Tętno maksymalne" w Ustawieniach (`rowerLoggerMaxHr`
+      w localStorage, `getMaxHr()` w `nav.js`) — na razie tylko
+      zapisywane, jeszcze nieużywane do wyliczeń. Domyślne wyliczanie
+      wzorem szacunkowym (220 − wiek), używane dopóki pole jest puste,
+      to osobny, jeszcze niezrobiony krok
 - [ ] Dostępność w zwykłej przeglądarce desktopowej (Chrome/Firefox/
       Safari) — bez wymogu Web Bluetooth, bo to tylko odczyt danych
 
