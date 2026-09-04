@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#12181B">
-<title>Rower Logger — Analiza</title>
+<title>Rower Logger — Ustawienia</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,7 +13,7 @@
 <body>
 
 <header>
-  <h1>Analiza</h1>
+  <h1>Ustawienia</h1>
 </header>
 
 <nav class="nav-menu">
@@ -36,11 +36,23 @@
 </nav>
 
 <main>
-  <div id="analysisContent" class="empty-state">
-    Wkrótce: historia treningów, wykresy trendów i rekordy osobiste.
+  <div class="stat-card settings-field">
+    <label for="appsScriptUrl">Adres Google Apps Script</label>
+    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
   </div>
+
+  <div class="stat-card settings-field">
+    <label for="maxHr">Tętno maksymalne (bpm)</label>
+    <input type="number" id="maxHr" placeholder="np. 185" min="1" inputmode="numeric">
+  </div>
+
+  <p id="settingsStatus" class="settings-status"></p>
+
+  <button class="hr-connect-btn" id="saveSettingsBtn">Zapisz ustawienia</button>
+  <button class="secondary" id="forceUpdateBtn">Wymuś aktualizację aplikacji</button>
 </main>
 
 <script src="nav.js?v=25"></script>
+<script src="ustawienia.js?v=25"></script>
 </body>
 </html>

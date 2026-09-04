@@ -15,10 +15,6 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - [x] Rozbudować `apps-script.gs`: właściwy `doGet(e)` zwracający dane
       z `Trening_Szczegoly` i `Trening_Podsumowania` jako JSON
       (zamiast obecnego stubu z samym komunikatem statusu)
-- [ ] Rozważyć limit/paginację przy odczycie w `doGet` (żeby przy
-      setkach treningów odpowiedź z Apps Script nie była zbyt ciężka).
-      Stronicowanie *wyświetlania* w `wyniki.html` już jest (patrz
-      Zrobione) — to wciąż dotyczy tylko samego pobierania danych
 
 ### Architektura widoku (ustalone)
 - [x] Osobna strona `analiza.html` w tym samym repozytorium (nie
@@ -31,10 +27,12 @@ czyta dane z arkusza, nie łączy się z rowerem).
       przy przyszłych zmianach wyglądu
 - [x] Jednolite menu nawigacyjne (bloki z ikonami: Trening / Analizy /
       Wyniki / Ustawienia), wspólne dla wszystkich podstron —
-      `.nav-menu` w `styles.css`, znacznik aktywnej podstrony i obsługa
-      przycisku "Ustawienia" na stronach bez `app.js` w nowym `nav.js`.
+      `.nav-menu` w `styles.css`, znacznik aktywnej podstrony w `nav.js`.
       Zastąpiło to wcześniejszy pomysł osobnego linku powrotnego —
       jedna, spójna nawigacja zamiast dwóch równoległych
+- [x] "Ustawienia" jako osobna podstrona `ustawienia.html` (nie
+      prompt/alert jak na początku) — z myślą o tym, że pól będzie
+      przybywać (np. planowane "wiek" poniżej)
 - [x] Dodać `analiza.html` (i jej plik JS, jeśli osobny) do listy
       cache'owanych plików w `sw.js` (`SHELL_FILES`) oraz objąć tym
       samym mechanizmem wersjonowania `?v=`, co `app.js`
@@ -115,6 +113,9 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - `apps-script.gs`: `doGet(e)` zwracający dane z obu zakładek jako JSON
 - Wspólny `styles.css`, jednolite menu nawigacyjne (Trening / Analizy /
   Wyniki / Ustawienia) na wszystkich podstronach
+- `ustawienia.html` — osobna podstrona z formularzem (adres Apps Script,
+  tętno maksymalne, wymuszenie aktualizacji aplikacji), zamiast
+  poprzednich okienek `prompt()`
 - `wyniki.html` — tabela podsumowań sesji z `Trening_Podsumowania`
   (najnowsze na górze, stronicowanie po 20 na stronę, skrócone
   dwuwierszowe nagłówki, sformatowane daty/godziny/czas trwania)

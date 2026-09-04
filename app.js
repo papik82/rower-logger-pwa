@@ -16,7 +16,7 @@ const CONFIG = {
 // Podbijaj ten numer przy każdej zmianie w app.js/index.html — widoczny
 // w stopce, żeby od razu było wiadomo, czy telefon faktycznie pobrał
 // najnowszą wersję, bez zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.24";
+const APP_VERSION = "2026-08-26.25";
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
 const INDOOR_BIKE_DATA_CHAR = "00002ad2-0000-1000-8000-00805f9b34fb";
@@ -640,27 +640,13 @@ function drawSparkline() {
 }
 
 /* ============================================================
-   Ustawienia (URL Apps Script)
+   Ustawienia (URL Apps Script) — pola edytowane na osobnej stronie
+   ustawienia.html; tu tylko odczyt i baner ostrzeżenia.
    ============================================================ */
 function checkConfig() {
   const warning = document.getElementById("configWarning");
   warning.classList.toggle("visible", !CONFIG.APPS_SCRIPT_URL);
 }
-
-document.getElementById("settingsBtn").addEventListener("click", async () => {
-  const current = CONFIG.APPS_SCRIPT_URL || "";
-  const url = prompt("Wklej URL wdrożenia Google Apps Script (kończy się na /exec):", current);
-  if (url !== null) {
-    CONFIG.APPS_SCRIPT_URL = url.trim();
-    localStorage.setItem("rowerLoggerAppsScriptUrl", CONFIG.APPS_SCRIPT_URL);
-    checkConfig();
-    log(CONFIG.APPS_SCRIPT_URL ? "Zapisano adres Apps Script." : "Wyczyszczono adres Apps Script.");
-
-    promptMaxHr();
-    const maxHr = getMaxHr();
-    log(maxHr ? `Tętno maksymalne: ${maxHr} bpm.` : "Tętno maksymalne nieustawione.");
-  }
-});
 
 /* ============================================================
    Ręczny opór — rower nie ma elektronicznej regulacji, więc
@@ -724,27 +710,6 @@ document.getElementById("recordBtn").addEventListener("click", () => {
   } else {
     startRecording();
   }
-});
-
-document.getElementById("forceUpdateBtn").addEventListener("click", async () => {
-  if (!confirm("To wyczyści lokalną pamięć aplikacji i przeładuje ją od zera. Trwający trening (jeśli jest) zostanie przerwany. Kontynuować?")) {
-    return;
-  }
-  log("Wymuszam aktualizację — czyszczę cache i service worker...");
-  try {
-    if ("serviceWorker" in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map((r) => r.unregister()));
-    }
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-    }
-  } catch (err) {
-    log(`Błąd podczas czyszczenia: ${err.message}`);
-  }
-  // Wymuszone przeładowanie z pominięciem pamięci podręcznej przeglądarki.
-  window.location.href = window.location.href.split("#")[0] + "?_v=" + Date.now();
 });
 
 checkConfig();
