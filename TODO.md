@@ -41,7 +41,11 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - [ ] **Historia treningów** — lista/tabela dotychczasowych sesji
       z podstawowymi statystykami (data, dystans, czas, śr. moc, śr. puls)
 - [ ] **Wykresy trendów w czasie** — prędkość / moc / puls / kadencja
-      na przestrzeni tygodni, z możliwością wyboru zakresu dat
+      na przestrzeni tygodni, z możliwością wyboru zakresu dat.
+      [x] Pierwszy, podstawowy wykres słupkowy: dystans (km) na kolejne
+      treningi (`analiza.js`, `drawBarChart`, płótno bez zewnętrznej
+      biblioteki, jak `sparkline` w `app.js`) — reszta metryk i wybór
+      zakresu dat to wciąż kolejny krok
 - [ ] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
       z historii

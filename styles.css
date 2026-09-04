@@ -227,6 +227,9 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 .sparkline-axis-min { top: auto; bottom: -2px; }
 .sparkline-axis-label-left { right: auto; left: 0; color: var(--hr-color); }
 
+.bar-chart-wrap { margin-top: 6px; }
+#distanceChart { width: 100%; height: 160px; display: block; }
+
 #logBox {
   background: var(--surface);
   border: 0.5px solid var(--border);

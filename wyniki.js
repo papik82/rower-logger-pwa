@@ -82,6 +82,8 @@ function formatNumber(value) {
 
 async function loadResults() {
   const container = document.getElementById("resultsContainer");
+  container.textContent = `Wczytywanie danych… (wersja ${APP_VERSION})`;
+
   const url = getAppsScriptUrl();
   if (!url) {
     container.textContent = 'Nie ustawiono adresu Google Apps Script. Otwórz "Ustawienia" w menu powyżej.';
