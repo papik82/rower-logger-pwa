@@ -1,6 +1,7 @@
 "use strict";
 
 const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
+const PAGE_SIZE = 20;
 
 // Skrócone, dwuwierszowe etykiety nagłówków — pełne nazwy kolumn z
 // arkusza (z jednostką w nawiasie) niepotrzebnie rozszerzały tabelę.
@@ -108,6 +109,8 @@ function renderTable(container, rows) {
 
   const headers = Object.keys(rows[0]).filter((h) => !HIDDEN_COLUMNS.includes(h));
   const newestFirst = rows.slice().reverse();
+  const pageCount = Math.max(1, Math.ceil(newestFirst.length / PAGE_SIZE));
+  let currentPage = 0;
 
   const table = document.createElement("table");
   table.className = "data-table";
@@ -123,25 +126,67 @@ function renderTable(container, rows) {
   table.appendChild(thead);
 
   const tbody = document.createElement("tbody");
-  newestFirst.forEach((row) => {
-    const tr = document.createElement("tr");
-    headers.forEach((h) => {
-      const td = document.createElement("td");
-      const raw = row[h];
-      const format = COLUMN_FORMATTERS[h];
-      td.textContent = (format && raw ? format(raw) : formatNumber(raw)) ?? "";
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
   table.appendChild(tbody);
 
   const wrap = document.createElement("div");
   wrap.className = "data-table-wrap";
   wrap.appendChild(table);
 
+  const prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.className = "stepper-btn";
+  prevBtn.setAttribute("aria-label", "Poprzednia strona");
+  prevBtn.textContent = "‹";
+
+  const nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.className = "stepper-btn";
+  nextBtn.setAttribute("aria-label", "Następna strona");
+  nextBtn.textContent = "›";
+
+  const pageLabel = document.createElement("span");
+  pageLabel.className = "pagination-label";
+
+  const pager = document.createElement("div");
+  pager.className = "pagination";
+  pager.append(prevBtn, pageLabel, nextBtn);
+
+  function renderPage() {
+    tbody.replaceChildren();
+    const start = currentPage * PAGE_SIZE;
+    newestFirst.slice(start, start + PAGE_SIZE).forEach((row) => {
+      const tr = document.createElement("tr");
+      headers.forEach((h) => {
+        const td = document.createElement("td");
+        const raw = row[h];
+        const format = COLUMN_FORMATTERS[h];
+        td.textContent = (format && raw ? format(raw) : formatNumber(raw)) ?? "";
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    pageLabel.textContent = `Strona ${currentPage + 1} / ${pageCount}`;
+    prevBtn.disabled = currentPage === 0;
+    nextBtn.disabled = currentPage >= pageCount - 1;
+    wrap.scrollLeft = 0;
+  }
+
+  prevBtn.addEventListener("click", () => {
+    if (currentPage === 0) return;
+    currentPage -= 1;
+    renderPage();
+  });
+  nextBtn.addEventListener("click", () => {
+    if (currentPage >= pageCount - 1) return;
+    currentPage += 1;
+    renderPage();
+  });
+
+  renderPage();
+
   container.className = "";
   container.replaceChildren(wrap);
+  if (pageCount > 1) container.appendChild(pager);
 }
 
 loadResults();

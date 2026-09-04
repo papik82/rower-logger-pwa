@@ -332,3 +332,21 @@ footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--
   vertical-align: bottom;
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+.pagination .stepper-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+.pagination-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

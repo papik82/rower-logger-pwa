@@ -15,8 +15,10 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - [x] Rozbudować `apps-script.gs`: właściwy `doGet(e)` zwracający dane
       z `Trening_Szczegoly` i `Trening_Podsumowania` jako JSON
       (zamiast obecnego stubu z samym komunikatem statusu)
-- [ ] Rozważyć limit/paginację przy odczycie (żeby przy setkach
-      treningów odpowiedź nie była zbyt ciężka)
+- [ ] Rozważyć limit/paginację przy odczycie w `doGet` (żeby przy
+      setkach treningów odpowiedź z Apps Script nie była zbyt ciężka).
+      Stronicowanie *wyświetlania* w `wyniki.html` już jest (patrz
+      Zrobione) — to wciąż dotyczy tylko samego pobierania danych
 
 ### Architektura widoku (ustalone)
 - [x] Osobna strona `analiza.html` w tym samym repozytorium (nie
@@ -113,6 +115,7 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - `apps-script.gs`: `doGet(e)` zwracający dane z obu zakładek jako JSON
 - Wspólny `styles.css`, jednolite menu nawigacyjne (Trening / Analizy /
   Wyniki / Ustawienia) na wszystkich podstronach
-- `wyniki.html` — surowa tabela wszystkich próbek z `Trening_Szczegoly`,
-  najnowsze na górze
+- `wyniki.html` — tabela podsumowań sesji z `Trening_Podsumowania`
+  (najnowsze na górze, stronicowanie po 20 na stronę, skrócone
+  dwuwierszowe nagłówki, sformatowane daty/godziny/czas trwania)
 - Wersja desktopowa (Python, GUI) — obecnie zamrożona na rzecz PWA
