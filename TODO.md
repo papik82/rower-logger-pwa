@@ -46,6 +46,14 @@ czyta dane z arkusza, nie łączy się z rowerem).
       treningi (`analiza.js`, `drawBarChart`, płótno bez zewnętrznej
       biblioteki, jak `sparkline` w `app.js`) — reszta metryk i wybór
       zakresu dat to wciąż kolejny krok
+      [x] "Dystans 15 min" — najlepszy 15-minutowy odcinek treningu
+      pod względem dystansu (`bestDistanceInWindow` w `app.js`, ta
+      sama logika zduplikowana w `apps-script.gs` do jednorazowego
+      backfillu starych treningów — patrz `backfillDistance15Min`).
+      Widoczny w tabeli Wyników i jako nakładany słupek na wykresie
+      dystansu. Liczony na razie dla każdego treningu >15 min; w
+      przyszłości ma być liczony tylko dla treningów z zaznaczonym
+      odpowiednim parametrem — patrz punkt niżej
 - [ ] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
       z historii
@@ -62,6 +70,11 @@ czyta dane z arkusza, nie łączy się z rowerem).
 ### Do ustalenia po drodze
 - [ ] Pole "wiek" w Ustawieniach (potrzebne do wzoru 220 − wiek, dopóki
       użytkownik nie poda własnego, znanego tętna maksymalnego)
+- [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
+      "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
+      15 min" ma być liczony tylko dla treningów z zaznaczonym tym
+      parametrem — na razie liczony automatycznie dla każdego treningu
+      dłuższego niż 15 minut, bez możliwości wyłączenia
 
 ---
 

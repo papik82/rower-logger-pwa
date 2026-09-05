@@ -11,6 +11,7 @@ const CONFIG = {
   SAMPLE_INTERVAL_S: 5,
   IDLE_SPEED_THRESHOLD_KMH: 0.5,
   TRIM_IDLE_EDGES: true,
+  BEST_EFFORT_WINDOW_S: 900, // 15 minut — patrz "Dystans 15 min" w podsumowaniu
 };
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
@@ -430,6 +431,37 @@ function mean(arr) {
   return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 
+// Najlepszy odcinek treningu o długości `windowSeconds` pod względem
+// przejechanego dystansu (jak "best effort" w aplikacjach kolarskich):
+// dla każdego możliwego startu bierzemy najkrótsze okno, które sięga
+// co najmniej `windowSeconds` do przodu, i patrzymy na różnicę
+// dystansu. Dwuwskaźnikowo po próbkach posortowanych rosnąco wg czasu
+// — O(n). Zwraca null, gdy trening jest krótszy niż samo okno.
+//
+// UWAGA: ta sama logika jest zduplikowana w apps-script.gs (funkcja
+// backfillDistance15Min) — to dwa różne środowiska (przeglądarka i
+// Apps Script), nie da się między nimi dzielić kodu. Zmieniając jedną,
+// zmień też drugą.
+function bestDistanceInWindow(samples, windowSeconds) {
+  if (samples.length < 2) return null;
+  const totalSpan = samples[samples.length - 1].elapsed_s - samples[0].elapsed_s;
+  if (totalSpan < windowSeconds) return null;
+
+  let best = -Infinity;
+  let j = 0;
+  for (let i = 0; i < samples.length; i++) {
+    if (j < i) j = i;
+    while (j < samples.length - 1 && samples[j].elapsed_s - samples[i].elapsed_s < windowSeconds) {
+      j++;
+    }
+    if (samples[j].elapsed_s - samples[i].elapsed_s >= windowSeconds) {
+      const dist = samples[j].distance_m - samples[i].distance_m;
+      if (dist > best) best = dist;
+    }
+  }
+  return best === -Infinity ? null : Math.round(best);
+}
+
 function formatDuration(totalSeconds) {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
@@ -450,6 +482,11 @@ function buildSummary() {
   const distances = col("distance_m");
   const energies = col("energy_total_kcal");
   const elapsedVals = col("elapsed_s");
+
+  const windowSamples = active
+    .filter((h) => h.elapsed_s !== undefined && h.distance_m !== undefined)
+    .map((h) => ({ elapsed_s: h.elapsed_s, distance_m: h.distance_m }));
+  const distance15min = bestDistanceInWindow(windowSamples, CONFIG.BEST_EFFORT_WINDOW_S);
 
   const durationS = elapsedVals.length
     ? Math.max(...elapsedVals) - Math.min(...elapsedVals)
@@ -474,6 +511,7 @@ function buildSummary() {
     avg_hr: hrs.length ? Math.round(mean(hrs) * 10) / 10 : "",
     max_hr: hrs.length ? Math.max(...hrs) : "",
     total_energy: energies.length ? Math.max(...energies) : "",
+    distance_15min_m: distance15min !== null ? distance15min : "",
   };
 
   const row = [
@@ -481,6 +519,7 @@ function buildSummary() {
     summary.duration_str, summary.distance_m, summary.avg_speed, summary.max_speed,
     summary.avg_cadence, summary.max_cadence, summary.avg_power, summary.max_power,
     summary.avg_resistance, summary.avg_hr, summary.max_hr, summary.total_energy,
+    summary.distance_15min_m,
   ];
 
   return { summary, row };

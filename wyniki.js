@@ -9,6 +9,7 @@ const PAGE_SIZE = 20;
 const COLUMN_LABELS = {
   "Czas trwania (HH:MM:SS)": "Czas\ntrwania",
   "Dystans całkowity (m)": "Dystans\n(m)",
+  "Dystans 15 min (m)": "Dystans 15 min\n(m)",
   "Śr. prędkość (km/h)": "Śr. prędkość\n(km/h)",
   "Maks. prędkość (km/h)": "Maks. prędkość\n(km/h)",
   "Śr. kadencja (obr/min)": "Śr. kadencja\n(obr/min)",

@@ -25,10 +25,14 @@ async function loadAnalysis() {
 
 function renderDistanceChart(container, rows) {
   const sessions = rows
-    .map((row) => ({
-      date: row["Data"],
-      km: Number(row["Dystans całkowity (m)"]) / 1000,
-    }))
+    .map((row) => {
+      const raw15 = row["Dystans 15 min (m)"];
+      return {
+        date: row["Data"],
+        km: Number(row["Dystans całkowity (m)"]) / 1000,
+        km15: raw15 ? Number(raw15) / 1000 : null,
+      };
+    })
     .filter((s) => s.date && Number.isFinite(s.km));
 
   if (sessions.length === 0) {
@@ -43,10 +47,22 @@ function renderDistanceChart(container, rows) {
   const card = document.createElement("div");
   card.className = "stat-card";
 
+  const header = document.createElement("div");
+  header.className = "sparkline-header";
+
   const label = document.createElement("p");
   label.className = "label";
   label.textContent = "Dystans na trening (km)";
-  card.appendChild(label);
+  header.appendChild(label);
+
+  const legend = document.createElement("div");
+  legend.className = "sparkline-legend";
+  legend.innerHTML =
+    '<span class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span>cały trening</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background: var(--hr-color);"></span>najlepsze 15 min</span>';
+  header.appendChild(legend);
+
+  card.appendChild(header);
 
   const chartWrap = document.createElement("div");
   chartWrap.className = "bar-chart-wrap";
@@ -77,6 +93,7 @@ function drawBarChart(canvas, sessions) {
 
   const style = getComputedStyle(document.documentElement);
   const accent = style.getPropertyValue("--accent").trim() || "#2FD9C4";
+  const hrColor = style.getPropertyValue("--hr-color").trim() || "#FF9F43";
   const muted = style.getPropertyValue("--text-muted").trim() || "#8CA0A6";
 
   const paddingTop = 16;
@@ -91,11 +108,23 @@ function drawBarChart(canvas, sessions) {
   ctx.font = "10px Roboto, system-ui, sans-serif";
 
   sessions.forEach((s, i) => {
-    const barHeight = maxKm > 0 ? (s.km / maxKm) * chartHeight : 0;
     const x = i * step + (step - barWidth) / 2;
+
+    const barHeight = maxKm > 0 ? (s.km / maxKm) * chartHeight : 0;
     const y = paddingTop + (chartHeight - barHeight);
     ctx.fillStyle = accent;
     ctx.fillRect(x, y, barWidth, barHeight);
+
+    // Najlepsze 15 min — węższy, nakładany słupek pokazujący, jaka
+    // część całego treningu przypadła na najlepszy 15-minutowy odcinek.
+    if (s.km15 !== null) {
+      const innerWidth = Math.max(2, barWidth * 0.5);
+      const innerX = x + (barWidth - innerWidth) / 2;
+      const height15 = maxKm > 0 ? (s.km15 / maxKm) * chartHeight : 0;
+      const y15 = paddingTop + (chartHeight - height15);
+      ctx.fillStyle = hrColor;
+      ctx.fillRect(innerX, y15, innerWidth, height15);
+    }
   });
 
   // Etykiety dat pod słupkami — pokazujemy tylko tyle, ile się zmieści

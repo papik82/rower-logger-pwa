@@ -4,7 +4,7 @@
 // w stopce i na ekranach wczytywania danych, żeby od razu było
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.27";
+const APP_VERSION = "2026-08-26.28";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie

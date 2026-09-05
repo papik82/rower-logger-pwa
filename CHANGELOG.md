@@ -11,6 +11,20 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.28 — 2026-09-05
+Nowy parametr „Dystans 15 min” — najlepszy 15-minutowy odcinek treningu
+pod względem przejechanego dystansu (jak „best effort” w aplikacjach
+kolarskich).
+- `app.js`: `bestDistanceInWindow()` liczy go z próbek bieżącego
+  treningu (dwuwskaźnikowo, O(n)) i dopisuje do podsumowania wysyłanego
+  do arkusza — dla treningów dłuższych niż 15 minut
+- `apps-script.gs`: ta sama logika + jednorazowa funkcja
+  `backfillDistance15Min()` do uzupełnienia już zapisanych treningów
+  (do uruchomienia ręcznie z edytora Apps Script, bez potrzeby
+  ponownego wdrożenia)
+- Widoczny jako nowa kolumna w tabeli Wyników i jako nakładany słupek
+  (inny kolor) na wykresie dystansu w Analizach
+
 ## 2026-08-26.27 — 2026-09-04
 Pierwszy wykres w Analizach i wersja na ekranach wczytywania.
 - `analiza.js`: wykres słupkowy (canvas, bez zewnętrznej biblioteki) —
