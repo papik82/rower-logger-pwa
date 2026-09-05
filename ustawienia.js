@@ -15,6 +15,9 @@ function showStatus(message, isError) {
 
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   localStorage.setItem("rowerLoggerAppsScriptUrl", urlInput.value.trim());
+  // Adres mógł się zmienić — bez tego Wyniki/Analizy pokazałyby jeszcze
+  // przez chwilę dane z poprzedniego arkusza z cache'a.
+  clearAppsScriptDataCache();
 
   const maxHrRaw = maxHrInput.value.trim();
   if (maxHrRaw === "") {

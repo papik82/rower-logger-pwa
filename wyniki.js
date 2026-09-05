@@ -81,19 +81,20 @@ function formatNumber(value) {
   return Math.round(value * 100) / 100;
 }
 
-async function loadResults() {
+async function loadResults(forceRefresh) {
   const container = document.getElementById("resultsContainer");
-  container.textContent = `Wczytywanie danych… (wersja ${APP_VERSION})`;
-
   const url = getAppsScriptUrl();
   if (!url) {
     container.textContent = 'Nie ustawiono adresu Google Apps Script. Otwórz "Ustawienia" w menu powyżej.';
     return;
   }
 
+  if (!forceRefresh && !getCachedAppsScriptData()) {
+    container.textContent = `Wczytywanie danych… (wersja ${APP_VERSION})`;
+  }
+
   try {
-    const res = await fetch(url);
-    const data = await res.json();
+    const { data } = await fetchAppsScriptData(forceRefresh);
     if (!data.ok) {
       container.textContent = "Błąd odczytu danych: " + (data.error || "nieznany błąd.");
       return;
@@ -103,6 +104,11 @@ async function loadResults() {
     container.textContent = "Błąd połączenia z Google Apps Script: " + err.message;
   }
 }
+
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  spinRefreshButton();
+  loadResults(true);
+});
 
 function renderTable(container, rows) {
   if (rows.length === 0) {

@@ -1,18 +1,25 @@
 "use strict";
 
-async function loadAnalysis() {
-  const container = document.getElementById("analysisContent");
-  container.textContent = `Wczytywanie danych… (wersja ${APP_VERSION})`;
+let activeChartCanvas = null;
+let activeChartSessions = null;
+window.addEventListener("resize", () => {
+  if (activeChartCanvas && activeChartSessions) drawBarChart(activeChartCanvas, activeChartSessions);
+});
 
+async function loadAnalysis(forceRefresh) {
+  const container = document.getElementById("analysisContent");
   const url = getAppsScriptUrl();
   if (!url) {
     container.textContent = 'Nie ustawiono adresu Google Apps Script. Otwórz "Ustawienia" w menu powyżej.';
     return;
   }
 
+  if (!forceRefresh && !getCachedAppsScriptData()) {
+    container.textContent = `Wczytywanie danych… (wersja ${APP_VERSION})`;
+  }
+
   try {
-    const res = await fetch(url);
-    const data = await res.json();
+    const { data } = await fetchAppsScriptData(forceRefresh);
     if (!data.ok) {
       container.textContent = "Błąd odczytu danych: " + (data.error || "nieznany błąd.");
       return;
@@ -22,6 +29,11 @@ async function loadAnalysis() {
     container.textContent = "Błąd połączenia z Google Apps Script: " + err.message;
   }
 }
+
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  spinRefreshButton();
+  loadAnalysis(true);
+});
 
 function renderDistanceChart(container, rows) {
   const sessions = rows
@@ -76,9 +88,12 @@ function renderDistanceChart(container, rows) {
   container.className = "";
   container.replaceChildren(card);
 
-  const redraw = () => drawBarChart(canvas, sessions);
-  redraw();
-  window.addEventListener("resize", redraw);
+  // `activeChart*` zamiast dodawania nowego listenera przy każdym
+  // wywołaniu — inaczej kolejne odświeżenia (przycisk, powrót na
+  // stronę) nagromadziłyby listenery ze starych, już usuniętych płócien.
+  activeChartCanvas = canvas;
+  activeChartSessions = sessions;
+  drawBarChart(canvas, sessions);
 }
 
 function drawBarChart(canvas, sessions) {

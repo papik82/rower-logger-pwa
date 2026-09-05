@@ -148,6 +148,7 @@ async function retryOfflineQueue() {
     if (!result.ok) remaining.push(item);
   }
   localStorage.setItem(key, JSON.stringify(remaining));
+  if (remaining.length < queue.length) clearAppsScriptDataCache();
   log(`Wysłano ${queue.length - remaining.length}/${queue.length}. Pozostało: ${remaining.length}.`);
 }
 
@@ -566,7 +567,8 @@ async function stopRecording() {
   releaseWakeLock();
 
   const { summary, row } = buildSummary();
-  await sendToSheets("summary", row);
+  const result = await sendToSheets("summary", row);
+  if (result.ok) clearAppsScriptDataCache();
   showSummary(summary);
 
   setStatus("Gotowy", "");

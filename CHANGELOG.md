@@ -11,6 +11,19 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.29 — 2026-09-05
+Cache danych z Apps Script dla Wyników i Analiz — obie strony czytają
+ten sam endpoint, więc jedno pobranie starcza teraz na obie, dopóki
+cache (5 minut, `sessionStorage`) nie wygaśnie.
+- `nav.js`: `fetchAppsScriptData()` — pobiera z cache, jeśli świeży,
+  inaczej odpytuje Apps Script i zapisuje wynik; `clearAppsScriptDataCache()`
+  czyszczona po zapisaniu nowego treningu, po udanym wysłaniu zaległej
+  kolejki offline i po zmianie adresu w Ustawieniach
+- Przycisk 🔄 w nagłówku Wyników i Analiz wymusza świeże pobranie
+  (pomija cache), z krótkim obrotem ikony jako feedbackiem
+- Poprawiony przy okazji drobny wyciek: `analiza.js` dodawał nowy
+  listener `resize` przy każdym odświeżeniu zamiast go podmieniać
+
 ## 2026-08-26.28 — 2026-09-05
 Nowy parametr „Dystans 15 min” — najlepszy 15-minutowy odcinek treningu
 pod względem przejechanego dystansu (jak „best effort” w aplikacjach
