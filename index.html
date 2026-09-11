@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=29">
+<link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
 
@@ -93,8 +93,8 @@
       <p class="value"><span id="statCadence">—</span><span class="unit">obr/min</span></p>
     </div>
     <div class="stat-card">
-      <p class="label">Moc</p>
-      <p class="value"><span id="statPower">—</span><span class="unit">W</span></p>
+      <p class="label">Dystans</p>
+      <p class="value"><span id="statDistance">—</span><span class="unit">km</span></p>
     </div>
     <div class="stat-card">
       <p class="label">Puls</p>
@@ -136,12 +136,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=29"></script>
-<script src="app.js?v=29"></script>
+<script src="nav.js?v=30"></script>
+<script src="app.js?v=30"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=29').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=30').catch(() => {});
   });
 }
 </script>

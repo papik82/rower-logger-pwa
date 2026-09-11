@@ -617,7 +617,8 @@ function fmtLive(value, decimals) {
 function updateLiveStats(sample) {
   document.getElementById("statSpeed").textContent = fmtLive(sample.speed_kmh, 1);
   document.getElementById("statCadence").textContent = fmtLive(sample.cadence_rpm, 1);
-  document.getElementById("statPower").textContent = fmtLive(sample.power_w, 0);
+  document.getElementById("statDistance").textContent =
+    fmtLive(sample.distance_m !== undefined && sample.distance_m !== null ? sample.distance_m / 1000 : undefined, 2);
 }
 
 function hideSummary() {

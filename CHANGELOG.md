@@ -11,6 +11,18 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.30 — 2026-09-11
+Kafelek „Dystans” na ekranie treningu zamiast „Moc” — pokazuje na
+żywo przejechany dystans (km, z bieżącej próbki roweru), zamiast
+chwilowej mocy.
+- `index.html`: kafelek `#statPower` w `#liveStats` zastąpiony
+  kafelkiem `#statDistance`
+- `app.js`: `updateLiveStats()` liczy dystans z `sample.distance_m`
+  (metry → km, 2 miejsca po przecinku) zamiast wypisywać moc
+- Podsumowanie treningu po zakończeniu (`Moc śr. / maks.`) bez zmian —
+  moc nadal jest zbierana i zapisywana, zniknęła tylko z widoku na
+  żywo
+
 ## 2026-08-26.29 — 2026-09-05
 Cache danych z Apps Script dla Wyników i Analiz — obie strony czytają
 ten sam endpoint, więc jedno pobranie starcza teraz na obie, dopóki
