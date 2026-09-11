@@ -189,6 +189,8 @@ let elapsedTimer = null;
 let sparklineData = [];
 let hrSparklineData = [];
 let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 10) || 5;
+let dataGaps = [];
+let lastTickWallClock = null;
 
 /* ============================================================
    Wake Lock — nie pozwól zgasnąć ekranowi podczas nagrywania
@@ -343,8 +345,29 @@ function refreshHrDisplay() {
 /* ============================================================
    Nagrywanie — próbkowanie co N sekund, zapis do arkusza
    ============================================================ */
+// Próg wykrywania luki: jeśli między dwoma tikami próbkowania minęło
+// realnie (zegar ścienny) wyraźnie więcej niż zakładany interwał, to
+// znaczy, że karta/aplikacja przez chwilę nie działała — np. system
+// odłożył ją w tło przy odebranej rozmowie telefonicznej (tak stało
+// się 2026-09-11, patrz apps-script.gs). Próbki z tego okresu są
+// bezpowrotnie stracone, ale przynajmniej dajemy o tym znać od razu,
+// zamiast żeby użytkownik odkrył "dziurę" dopiero w Wynikach.
+const SAMPLING_GAP_THRESHOLD_S = CONFIG.SAMPLE_INTERVAL_S * 1.8;
+
 function startSampling() {
+  lastTickWallClock = Date.now();
   samplingTimer = setInterval(async () => {
+    const now = Date.now();
+    const sinceLastTick = (now - lastTickWallClock) / 1000;
+    lastTickWallClock = now;
+    if (sinceLastTick > SAMPLING_GAP_THRESHOLD_S) {
+      const gapSeconds = Math.round(sinceLastTick - CONFIG.SAMPLE_INTERVAL_S);
+      dataGaps.push({ elapsed_s: latestSample.elapsed_s, seconds: gapSeconds });
+      log(`⚠️ Wykryto przerwę w zapisie: ~${gapSeconds}s bez danych (aplikacja w tle / rozłączenie?).`);
+      setStatus(`⚠️ Przerwa w zapisie (~${gapSeconds}s)`, "error");
+      setTimeout(() => { if (isRecording) setStatus("Trening w toku", "recording"); }, 4000);
+    }
+
     if (Object.keys(latestSample).length === 0) return;
     const sample = {
       ...latestSample,
@@ -540,6 +563,7 @@ async function startRecording() {
     history = [];
     sparklineData = [];
     hrSparklineData = [];
+    dataGaps = [];
     hideSummary();
 
     await acquireWakeLock();
@@ -636,6 +660,19 @@ function showSummary(summary) {
     `${summary.avg_power ?? "—"} / ${summary.max_power ?? "—"} W`;
   document.getElementById("sumHr").textContent =
     `${summary.avg_hr ?? "—"} / ${summary.max_hr ?? "—"} bpm`;
+
+  const gapWarning = document.getElementById("summaryGapWarning");
+  if (dataGaps.length > 0) {
+    const totalGap = dataGaps.reduce((a, g) => a + g.seconds, 0);
+    const word = dataGaps.length === 1 ? "przerwę" : "przerwy";
+    gapWarning.textContent =
+      `⚠️ Wykryto ${dataGaps.length} ${word} w zapisie (łącznie ~${totalGap}s bez danych) — ` +
+      `część treningu mogła nie zostać zarejestrowana. Sprawdź log poniżej.`;
+    gapWarning.classList.add("visible");
+  } else {
+    gapWarning.classList.remove("visible");
+  }
+
   document.getElementById("summaryCard").classList.add("visible");
 }
 

@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=30">
+<link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
 
@@ -121,6 +121,7 @@
 
   <div id="summaryCard">
     <h2>Podsumowanie treningu</h2>
+    <div id="summaryGapWarning"></div>
     <div class="summary-grid">
       <div class="summary-row"><p class="k">Czas trwania</p><p class="v" id="sumDuration">—</p></div>
       <div class="summary-row"><p class="k">Dystans</p><p class="v" id="sumDistance">—</p></div>
@@ -136,12 +137,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=30"></script>
-<script src="app.js?v=30"></script>
+<script src="nav.js?v=31"></script>
+<script src="app.js?v=31"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=30').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=31').catch(() => {});
   });
 }
 </script>

@@ -11,6 +11,25 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.31 — 2026-09-11
+Wykrywanie przerw w zapisie treningu na żywo — bezpośrednia reakcja na
+to, co spowodowało dziurę w treningu 2026-09-11 (odebrana rozmowa
+telefoniczna zeszła aplikację w tło na ~91s, bez żadnego śladu w
+interfejsie, że coś się nie zapisało).
+- `app.js`: `startSampling()` mierzy realny (zegar ścienny) odstęp
+  między kolejnymi tikami próbkowania — jeśli wyraźnie przekracza
+  zakładany interwał (>1.8×), to znak że karta/aplikacja przez chwilę
+  nie działała. Zapisywane do `dataGaps`, natychmiast widoczne jako
+  wpis w logu i 4-sekundowe ostrzeżenie w pigułce statusu
+- Po zakończeniu treningu: jeśli wystąpiły luki, w karcie
+  „Podsumowanie treningu” pojawia się czerwony baner z liczbą przerw
+  i łącznym czasem bez danych (`index.html`: `#summaryGapWarning`,
+  `styles.css`)
+- Nie naprawia samych danych (to wciąż ręczna sprawa, patrz
+  `patchCallGapSession_20260911` w `apps-script.gs`) — tylko od razu
+  informuje, żeby dziura nie została niezauważona do czasu przeglądania
+  Wyników kilka dni później
+
 ## 2026-08-26.30 — 2026-09-11
 Kafelek „Dystans” na ekranie treningu zamiast „Moc” — pokazuje na
 żywo przejechany dystans (km, z bieżącej próbki roweru), zamiast
