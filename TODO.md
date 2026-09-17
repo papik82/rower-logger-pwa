@@ -54,6 +54,10 @@ czyta dane z arkusza, nie łączy się z rowerem).
       dystansu. Liczony na razie dla każdego treningu >15 min; w
       przyszłości ma być liczony tylko dla treningów z zaznaczonym
       odpowiednim parametrem — patrz punkt niżej
+      - [x] Interaktywne zaznaczanie słupka na wykresie (klik/tap na
+            kolumnie) pokazujące etykietę z dokładną wartością dla
+            danej pozycji — wykres dystansu na podstronie Analizy
+            (`drawBarChart`/`drawChartTooltip` w `analiza.js`)
 - [ ] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
       z historii
@@ -75,6 +79,18 @@ czyta dane z arkusza, nie łączy się z rowerem).
       15 min" ma być liczony tylko dla treningów z zaznaczonym tym
       parametrem — na razie liczony automatycznie dla każdego treningu
       dłuższego niż 15 minut, bez możliwości wyłączenia
+
+---
+
+### Ulepszenia wykresu treningu na żywo (index.html / sparkline)
+- [x] Rozdzielić obecny wspólny wykres prędkości i tętna na dwa
+      osobne wykresy, jeden pod drugim
+- [x] Na każdym z nich dodać krzywą średniej (prędkości / tętna)
+      cieńszą/jaśniejszą niż krzywa wartości bieżącej
+
+### Drobne usprawnienia UI (zbiorcze)
+- [x] Nowe, czytelniejsze, bardziej piktogramowe ikonki w górnym
+      menu nawigacyjnym (`.nav-menu`)
 
 ---
 

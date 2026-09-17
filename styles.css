@@ -96,7 +96,8 @@ h1 {
   color: var(--accent);
   background: var(--accent-dim);
 }
-.nav-icon { font-size: 20px; line-height: 1; }
+.nav-icon { display: flex; }
+.nav-icon svg { width: 22px; height: 22px; }
 .nav-label { font-size: 11px; font-weight: 500; }
 
 main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8px; }
@@ -229,14 +230,15 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   background: var(--surface-2);
 }
 
-#sparklineWrap { padding: 14px 16px; }
+#speedSparklineWrap, #hrSparklineWrap { padding: 14px 16px; }
 .sparkline-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .sparkline-header .label { margin: 0; }
 .sparkline-legend { display: flex; gap: 10px; }
 .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-#sparklineChartWrap { position: relative; margin-top: 6px; }
-#sparkline { width: 100%; height: 46px; display: block; }
+.legend-dot-avg { opacity: 0.4; }
+.sparkline-chart-wrap { position: relative; margin-top: 6px; }
+.sparkline-canvas { width: 100%; height: 46px; display: block; }
 .sparkline-axis-label {
   position: absolute;
   right: 0;
@@ -246,10 +248,9 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   top: -2px;
 }
 .sparkline-axis-min { top: auto; bottom: -2px; }
-.sparkline-axis-label-left { right: auto; left: 0; color: var(--hr-color); }
 
 .bar-chart-wrap { margin-top: 6px; }
-#distanceChart { width: 100%; height: 160px; display: block; }
+#distanceChart { width: 100%; height: 160px; display: block; cursor: pointer; }
 
 #logBox {
   background: var(--surface);

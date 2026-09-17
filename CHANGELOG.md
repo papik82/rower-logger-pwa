@@ -11,6 +11,54 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.34 — 2026-09-17
+Interaktywne słupki na wykresie dystansu (podstrona Analizy) — klik/tap
+pokazuje dokładne wartości dla danego treningu, zamiast trzeba było je
+szacować "na oko" z wysokości słupka.
+- `analiza.js`: `drawBarChart()` przyjmuje teraz `selectedIndex`;
+  wybrany słupek dostaje białą obwódkę, a nad nim (lub pod, gdy słupek
+  sięga blisko górnej krawędzi płótna) rysowany jest dymek z datą,
+  dystansem całkowitym i — jeśli policzony — najlepszym 15-minutowym
+  odcinkiem (`drawChartTooltip`, `formatFullDate`)
+- Listener kliknięcia na `#distanceChart` liczy indeks słupka z
+  pozycji X kliknięcia; ponowny klik na tym samym słupku chowa dymek
+  (`activeChartSelectedIndex`, zachowywany też przy przerysowaniu po
+  zmianie rozmiaru okna)
+- `styles.css`: `cursor: pointer` na `#distanceChart`, sygnalizujący
+  że słupki są klikalne
+
+## 2026-08-26.33 — 2026-09-17
+Nowe ikonki w menu nawigacyjnym — emoji (🚴📊📋⚙️, różnie renderowane
+zależnie od systemu/przeglądarki, stały kolor) zastąpione spójnymi,
+liniowymi piktogramami SVG (rower, wykres słupkowy, schowek z listą,
+tryb ustawień).
+- `index.html`, `analiza.html`, `wyniki.html`, `ustawienia.html`:
+  zawartość `.nav-icon` w każdej z 4 kafelek `.nav-menu` zamieniona
+  z emoji na inline `<svg>` (`stroke="currentColor"`, bez wypełnienia)
+- `styles.css`: `.nav-icon` teraz stylizuje rozmiar `svg` (22×22px)
+  zamiast `font-size` dla emoji
+- Efekt uboczny (dzięki `currentColor`): aktywna zakładka podświetla
+  teraz też samą ikonę na kolor `--accent`, nie tylko obramowanie i
+  etykietę — poprzednio emoji miały stały kolor niezależny od stanu
+
+## 2026-08-26.32 — 2026-09-17
+Rozdzielony wykres prędkości/pulsu na żywo na dwa osobne wykresy, jeden
+pod drugim, każdy z krzywą średniej kroczącej obok krzywej wartości
+bieżącej.
+- `index.html`: `#sparklineWrap` zastąpiony dwiema kartami,
+  `#speedSparklineWrap` i `#hrSparklineWrap`, każda z własnym canvasem
+  (`#sparklineSpeed` / `#sparklineHr`) i własnymi etykietami min/maks.
+  (`#speedSparkMax`/`#speedSparkMin`, `#hrSparkMax`/`#hrSparkMin`)
+- `styles.css`: selektory ID przepisane na klasy współdzielone przez
+  oba wykresy (`.sparkline-chart-wrap`, `.sparkline-canvas`), dodana
+  `.legend-dot-avg` (przyciemniona kropka legendy średniej)
+- `app.js`: nowe `sparklineAvgData` / `hrSparklineAvgData` — średnia
+  narastająca od początku treningu (nie tylko z widocznego okna ~5
+  min), aktualizowana co próbkę obok surowych danych. `drawSparkline()`
+  rysuje teraz dwa canvasy przez `drawSparklineChart()`, każdy z krzywą
+  bieżącą (pełna barwa, grubsza) i krzywą średnią (40% przezroczystości,
+  cieńsza) na wspólnej skali osi Y
+
 ## 2026-08-26.31 — 2026-09-11
 Wykrywanie przerw w zapisie treningu na żywo — bezpośrednia reakcja na
 to, co spowodowało dziurę w treningu 2026-09-11 (odebrana rozmowa

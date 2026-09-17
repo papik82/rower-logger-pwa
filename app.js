@@ -188,6 +188,12 @@ let samplingTimer = null;
 let elapsedTimer = null;
 let sparklineData = [];
 let hrSparklineData = [];
+let sparklineAvgData = [];
+let hrSparklineAvgData = [];
+let speedRunningSum = 0;
+let speedRunningCount = 0;
+let hrRunningSum = 0;
+let hrRunningCount = 0;
 let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 10) || 5;
 let dataGaps = [];
 let lastTickWallClock = null;
@@ -396,6 +402,21 @@ function startSampling() {
     if (sparklineData.length > 60) sparklineData.shift();
     hrSparklineData.push(sample.heart_rate_bpm ?? 0);
     if (hrSparklineData.length > 60) hrSparklineData.shift();
+
+    if (sample.speed_kmh !== undefined && sample.speed_kmh !== null) {
+      speedRunningSum += sample.speed_kmh;
+      speedRunningCount += 1;
+    }
+    sparklineAvgData.push(speedRunningCount ? speedRunningSum / speedRunningCount : 0);
+    if (sparklineAvgData.length > 60) sparklineAvgData.shift();
+
+    if (sample.heart_rate_bpm !== undefined && sample.heart_rate_bpm !== null) {
+      hrRunningSum += sample.heart_rate_bpm;
+      hrRunningCount += 1;
+    }
+    hrSparklineAvgData.push(hrRunningCount ? hrRunningSum / hrRunningCount : 0);
+    if (hrSparklineAvgData.length > 60) hrSparklineAvgData.shift();
+
     drawSparkline();
 
     log(
@@ -563,6 +584,12 @@ async function startRecording() {
     history = [];
     sparklineData = [];
     hrSparklineData = [];
+    sparklineAvgData = [];
+    hrSparklineAvgData = [];
+    speedRunningSum = 0;
+    speedRunningCount = 0;
+    hrRunningSum = 0;
+    hrRunningCount = 0;
     dataGaps = [];
     hideSummary();
 
@@ -676,15 +703,12 @@ function showSummary(summary) {
   document.getElementById("summaryCard").classList.add("visible");
 }
 
-function drawSparklineSeries(ctx, data, w, h, color, maxLabelId, minLabelId, decimals) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
+// Rysuje krzywą wartości bieżącej oraz, poniżej niej, cieńszą i
+// jaśniejszą krzywą średniej kroczącej (średnia narastająca od
+// początku treningu, nie tylko z widocznego okna ~5 min) — obie na
+// tej samej skali osi Y, żeby ich wzajemne położenie było czytelne.
+function drawSparklineLine(ctx, data, w, h, min, range, lineWidth, alpha) {
   const step = w / (data.length - 1);
-
-  document.getElementById(maxLabelId).textContent = max.toFixed(decimals);
-  document.getElementById(minLabelId).textContent = min.toFixed(decimals);
-
   ctx.beginPath();
   data.forEach((v, i) => {
     const x = i * step;
@@ -692,13 +716,14 @@ function drawSparklineSeries(ctx, data, w, h, color, maxLabelId, minLabelId, dec
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = lineWidth;
   ctx.stroke();
+  ctx.globalAlpha = 1;
 }
 
-function drawSparkline() {
-  const canvas = document.getElementById("sparkline");
+function drawSparklineChart(canvasId, data, avgData, color, maxLabelId, minLabelId, decimals) {
+  const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
@@ -708,9 +733,25 @@ function drawSparkline() {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
+  if (data.length < 2) return;
+
+  const combined = data.concat(avgData);
+  const max = Math.max(...combined);
+  const min = Math.min(...combined);
+  const range = max - min || 1;
+
+  document.getElementById(maxLabelId).textContent = Math.max(...data).toFixed(decimals);
+  document.getElementById(minLabelId).textContent = Math.min(...data).toFixed(decimals);
+
+  ctx.strokeStyle = color;
+  drawSparklineLine(ctx, avgData, w, h, min, range, 1.5, 0.4);
+  drawSparklineLine(ctx, data, w, h, min, range, 2, 1);
+}
+
+function drawSparkline() {
   if (sparklineData.length < 2) return;
-  drawSparklineSeries(ctx, sparklineData, w, h, "#2FD9C4", "sparkMax", "sparkMin", 1);
-  drawSparklineSeries(ctx, hrSparklineData, w, h, "#FF9F43", "hrSparkMax", "hrSparkMin", 0);
+  drawSparklineChart("sparklineSpeed", sparklineData, sparklineAvgData, "#2FD9C4", "speedSparkMax", "speedSparkMin", 1);
+  drawSparklineChart("sparklineHr", hrSparklineData, hrSparklineAvgData, "#FF9F43", "hrSparkMax", "hrSparkMin", 0);
 }
 
 /* ============================================================

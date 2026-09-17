@@ -2,8 +2,11 @@
 
 let activeChartCanvas = null;
 let activeChartSessions = null;
+let activeChartSelectedIndex = null;
 window.addEventListener("resize", () => {
-  if (activeChartCanvas && activeChartSessions) drawBarChart(activeChartCanvas, activeChartSessions);
+  if (activeChartCanvas && activeChartSessions) {
+    drawBarChart(activeChartCanvas, activeChartSessions, activeChartSelectedIndex);
+  }
 });
 
 async function loadAnalysis(forceRefresh) {
@@ -93,10 +96,22 @@ function renderDistanceChart(container, rows) {
   // stronę) nagromadziłyby listenery ze starych, już usuniętych płócien.
   activeChartCanvas = canvas;
   activeChartSessions = sessions;
-  drawBarChart(canvas, sessions);
+  activeChartSelectedIndex = null;
+  drawBarChart(canvas, sessions, null);
+
+  canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const step = canvas.clientWidth / sessions.length;
+    const index = Math.max(0, Math.min(sessions.length - 1, Math.floor(x / step)));
+    // Ponowny klik na tym samym słupku chowa etykietę zamiast trzymać
+    // ją przyklejoną na stałe.
+    activeChartSelectedIndex = activeChartSelectedIndex === index ? null : index;
+    drawBarChart(canvas, sessions, activeChartSelectedIndex);
+  });
 }
 
-function drawBarChart(canvas, sessions) {
+function drawBarChart(canvas, sessions, selectedIndex) {
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
@@ -110,6 +125,7 @@ function drawBarChart(canvas, sessions) {
   const accent = style.getPropertyValue("--accent").trim() || "#2FD9C4";
   const hrColor = style.getPropertyValue("--hr-color").trim() || "#FF9F43";
   const muted = style.getPropertyValue("--text-muted").trim() || "#8CA0A6";
+  const text = style.getPropertyValue("--text").trim() || "#F2F5F4";
 
   const paddingTop = 16;
   const paddingBottom = 22;
@@ -121,6 +137,8 @@ function drawBarChart(canvas, sessions) {
 
   ctx.textAlign = "center";
   ctx.font = "10px Roboto, system-ui, sans-serif";
+
+  let selected = null;
 
   sessions.forEach((s, i) => {
     const x = i * step + (step - barWidth) / 2;
@@ -140,7 +158,21 @@ function drawBarChart(canvas, sessions) {
       ctx.fillStyle = hrColor;
       ctx.fillRect(innerX, y15, innerWidth, height15);
     }
+
+    if (i === selectedIndex) {
+      // Zapamiętane do narysowania obwódki i etykiety na wierzchu,
+      // dopiero po wszystkich słupkach — inaczej sąsiedni słupek
+      // mógłby ją częściowo zasłonić.
+      selected = { session: s, x, y, barWidth, barHeight, barCenterX: x + barWidth / 2 };
+    }
   });
+
+  if (selected) {
+    ctx.strokeStyle = text;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(selected.x - 1.5, selected.y - 1.5, selected.barWidth + 3, selected.barHeight + 3);
+    drawChartTooltip(ctx, w, selected, style);
+  }
 
   // Etykiety dat pod słupkami — pokazujemy tylko tyle, ile się zmieści
   // bez zlewania się (co N-ty słupek). Ostatni trening zawsze widoczny,
@@ -159,11 +191,65 @@ function drawBarChart(canvas, sessions) {
     }
   }
 
+  ctx.textAlign = "center";
   ctx.fillStyle = muted;
   shownIndices.forEach((i) => {
     const x = i * step + step / 2;
     ctx.fillText(formatShortDate(sessions[i].date), x, h - 8);
   });
+}
+
+// Dymek z dokładnymi wartościami dla klikniętego/tapniętego słupka —
+// rysowany na płótnie (jak reszta wykresu), nad słupkiem, przesunięty
+// tak, żeby zmieścić się w szerokości płótna przy skrajnych słupkach.
+function drawChartTooltip(ctx, canvasWidth, selected, style) {
+  const surface2 = style.getPropertyValue("--surface-2").trim() || "#232E33";
+  const border = style.getPropertyValue("--border").trim() || "#2A353A";
+  const text = style.getPropertyValue("--text").trim() || "#F2F5F4";
+
+  const lines = [formatFullDate(selected.session.date), `Dystans: ${selected.session.km.toFixed(2)} km`];
+  if (selected.session.km15 !== null) {
+    lines.push(`Najlepsze 15 min: ${selected.session.km15.toFixed(2)} km`);
+  }
+
+  ctx.font = "11px Roboto, system-ui, sans-serif";
+  const lineHeight = 14;
+  const paddingX = 8;
+  const paddingY = 6;
+  const boxWidth = Math.max(...lines.map((l) => ctx.measureText(l).width)) + paddingX * 2;
+  const boxHeight = lines.length * lineHeight + paddingY * 2 - 4;
+
+  let boxX = selected.barCenterX - boxWidth / 2;
+  boxX = Math.max(2, Math.min(canvasWidth - boxWidth - 2, boxX));
+  let boxY = selected.y - boxHeight - 8;
+  // Gdy słupek sięga blisko górnej krawędzi płótna, dymek nad nim by
+  // się nie zmieścił — pokazujemy go wtedy pod szczytem słupka.
+  if (boxY < 2) boxY = selected.y + 8;
+
+  ctx.beginPath();
+  ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6);
+  ctx.fillStyle = surface2;
+  ctx.fill();
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = text;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, boxX + paddingX, boxY + paddingY + lineHeight * i + 9);
+  });
+}
+
+function formatFullDate(value) {
+  const d = new Date(value);
+  if (isNaN(d)) return "";
+  return new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(d);
 }
 
 function formatShortDate(value) {
