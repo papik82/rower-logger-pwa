@@ -38,8 +38,12 @@ czyta dane z arkusza, nie łączy się z rowerem).
       samym mechanizmem wersjonowania `?v=`, co `app.js`
 
 ### Zakres merytoryczny (wszystko naraz, jeden moduł)
-- [ ] **Historia treningów** — lista/tabela dotychczasowych sesji
-      z podstawowymi statystykami (data, dystans, czas, śr. moc, śr. puls)
+- [x] **Historia treningów** — lista/tabela dotychczasowych sesji
+      z podstawowymi statystykami (data, dystans, czas, śr. moc, śr. puls).
+      Już pokryte przez istniejącą podstronę `wyniki.html`/`wyniki.js`
+      (tabela `Trening_Podsumowania`, najnowsze na górze, stronicowanie
+      po 20) — osobna strona zamiast części modułu analitycznego, ale
+      spełnia ten sam cel
 - [ ] **Wykresy trendów w czasie** — prędkość / moc / puls / kadencja
       na przestrzeni tygodni, z możliwością wyboru zakresu dat.
       [x] Pierwszy, podstawowy wykres słupkowy: dystans (km) na kolejne
@@ -64,16 +68,21 @@ czyta dane z arkusza, nie łączy się z rowerem).
 - [ ] **Strefy tętna** — podział czasu treningu na strefy (na bazie
       tętna maksymalnego), wizualizacja % czasu w każdej strefie.
       [x] Pole "Tętno maksymalne" w Ustawieniach (`rowerLoggerMaxHr`
-      w localStorage, `getMaxHr()` w `nav.js`) — na razie tylko
-      zapisywane, jeszcze nieużywane do wyliczeń. Domyślne wyliczanie
-      wzorem szacunkowym (220 − wiek), używane dopóki pole jest puste,
-      to osobny, jeszcze niezrobiony krok
+      w localStorage, `getMaxHr()` w `nav.js`), wpisywane przez
+      użytkownika na podstawie własnego testu
+      [x] Wyliczenie samych stref (standardowy model %HRmax, 5 stref)
+      i ich podgląd — karta "Strefy tętna" w Ustawieniach, pod polem
+      tętna maksymalnego, odświeżana na bieżąco przy wpisywaniu
+      (`computeHrZones`/`HR_ZONE_DEFS` w `nav.js`, render w
+      `ustawienia.js`)
+      - [ ] Wykorzystanie tych granic do podziału **czasu treningu**
+            na strefy i wizualizacji % czasu w każdej — to wciąż
+            wymaga przejścia po próbkach `Trening_Szczegoly` sesji
+            (dopiero to jest oryginalny sens tego punktu w Fazie 1)
 - [ ] Dostępność w zwykłej przeglądarce desktopowej (Chrome/Firefox/
       Safari) — bez wymogu Web Bluetooth, bo to tylko odczyt danych
 
 ### Do ustalenia po drodze
-- [ ] Pole "wiek" w Ustawieniach (potrzebne do wzoru 220 − wiek, dopóki
-      użytkownik nie poda własnego, znanego tętna maksymalnego)
 - [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
       "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
       15 min" ma być liczony tylko dla treningów z zaznaczonym tym
@@ -126,8 +135,6 @@ czyta dane z arkusza, nie łączy się z rowerem).
 ---
 
 ## 💭 Do przemyślenia (luźne, jeszcze nie w backlogu)
-- Test bazowy do kalibracji stref mocy/tętna (np. 20-minutowy test
-  maksymalnego wysiłku) — punkt odniesienia pod przyszłe treningi
 - Progresja oparta na trendzie (np. średnia moc z ostatnich 4 tygodni),
   nie tylko na pojedynczym rekordzie z jednej sesji
 

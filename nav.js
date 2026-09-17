@@ -4,7 +4,7 @@
 // w stopce i na ekranach wczytywania danych, żeby od razu było
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.34";
+const APP_VERSION = "2026-08-26.35";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -79,11 +79,34 @@ function spinRefreshButton() {
   btn.classList.add("spinning");
 }
 
-// Tętno maksymalne — na razie tylko zapisywane w Ustawieniach, docelowo
-// posłuży do wyliczania stref tętna (patrz TODO.md, Faza 1).
+// Tętno maksymalne — wpisywane w Ustawieniach na podstawie własnego testu
+// użytkownika, bez wzoru szacunkowego z wieku (patrz TODO.md, Faza 1).
 function getMaxHr() {
   const stored = Number(localStorage.getItem("rowerLoggerMaxHr"));
   return stored > 0 ? stored : null;
+}
+
+// Standardowy 5-strefowy model %HRmax (bez tętna spoczynkowego —
+// metoda Karvonena wymagałaby dodatkowego pola, na razie niepotrzebnego).
+// Współdzielone między Ustawieniami (podgląd stref) i przyszłymi
+// wyliczeniami % czasu treningu w każdej strefie.
+const HR_ZONE_DEFS = [
+  { label: "Regeneracja", low: 0.50, high: 0.60, color: "#4C8BF5" },
+  { label: "Spalanie tłuszczu", low: 0.60, high: 0.70, color: "#2FD9C4" },
+  { label: "Wytrzymałość aerobowa", low: 0.70, high: 0.80, color: "#F5C542" },
+  { label: "Próg anaerobowy", low: 0.80, high: 0.90, color: "#FF9F43" },
+  { label: "Maksymalny wysiłek", low: 0.90, high: 1.00, color: "#FF5C5C" },
+];
+
+// Granice kolejnych stref stykają się bez przerwy ani nakładania: dół
+// strefy to góra poprzedniej + 1 bpm, więc każda wartość tętna trafia
+// do dokładnie jednej strefy.
+function computeHrZones(maxHr) {
+  return HR_ZONE_DEFS.map((zone, i) => {
+    const from = i === 0 ? Math.round(maxHr * zone.low) : Math.round(maxHr * HR_ZONE_DEFS[i - 1].high) + 1;
+    const to = i === HR_ZONE_DEFS.length - 1 ? maxHr : Math.round(maxHr * zone.high);
+    return { ...zone, number: i + 1, from, to };
+  });
 }
 
 function markActiveNavTile() {

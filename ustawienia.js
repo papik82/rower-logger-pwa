@@ -13,6 +13,34 @@ function showStatus(message, isError) {
   statusEl.classList.toggle("error", !!isError);
 }
 
+const hrZonesList = document.getElementById("hrZonesList");
+
+// Odświeżany na bieżąco przy wpisywaniu, nie tylko po zapisie — żeby
+// od razu było widać efekt, zanim ktoś kliknie "Zapisz ustawienia".
+function renderHrZones() {
+  const raw = maxHrInput.value.trim();
+  const maxHr = Number(raw);
+  if (raw === "" || !Number.isFinite(maxHr) || maxHr <= 0) {
+    hrZonesList.innerHTML = '<p class="hr-zones-empty">Wpisz tętno maksymalne powyżej, żeby zobaczyć strefy.</p>';
+    return;
+  }
+
+  const zones = computeHrZones(Math.round(maxHr));
+  hrZonesList.innerHTML = zones
+    .map(
+      (z) => `
+      <div class="hr-zone-row">
+        <span class="hr-zone-swatch" style="background: ${z.color};"></span>
+        <span class="hr-zone-label">Strefa ${z.number} · ${z.label}</span>
+        <span class="hr-zone-range">${z.from}–${z.to} bpm</span>
+      </div>`
+    )
+    .join("");
+}
+
+maxHrInput.addEventListener("input", renderHrZones);
+renderHrZones();
+
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   localStorage.setItem("rowerLoggerAppsScriptUrl", urlInput.value.trim());
   // Adres mógł się zmienić — bez tego Wyniki/Analizy pokazałyby jeszcze
@@ -32,6 +60,7 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
     maxHrInput.value = Math.round(value);
   }
 
+  renderHrZones();
   showStatus("Zapisano ustawienia.", false);
 });
 

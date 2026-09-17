@@ -350,6 +350,30 @@ footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--
 }
 .settings-status.error { color: var(--danger); }
 
+#hrZonesCard .label { margin: 0 0 10px; }
+.hr-zones-empty { font-size: 13px; color: var(--text-muted); margin: 0; }
+.hr-zone-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 0.5px solid var(--border);
+}
+.hr-zone-row:first-child { border-top: none; padding-top: 0; }
+.hr-zone-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.hr-zone-label { font-size: 13px; flex: 1; }
+.hr-zone-range {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .empty-state {
   background: var(--surface);
   border: 0.5px solid var(--border);

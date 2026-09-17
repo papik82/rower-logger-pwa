@@ -11,6 +11,20 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 2026-08-26.35 — 2026-09-17
+Strefy tętna wyliczane z tętna maksymalnego — podgląd w Ustawieniach,
+bez wzoru z wieku (użytkownik wpisuje własne, znane tętno maksymalne).
+- `nav.js`: `HR_ZONE_DEFS` (standardowy 5-strefowy model %HRmax: 50–60
+  / 60–70 / 70–80 / 80–90 / 90–100%, bez tętna spoczynkowego) i
+  `computeHrZones(maxHr)` — granice sąsiednich stref stykają się bez
+  przerwy ani nakładania (dół = góra poprzedniej + 1 bpm)
+- `ustawienia.html`/`ustawienia.js`: nowa karta "Strefy tętna" pod
+  polem tętna maksymalnego — lista 5 stref (nazwa, zakres bpm, kolorowy
+  znacznik od niebieskiego do czerwonego), odświeżana na bieżąco przy
+  wpisywaniu wartości (`input` na `#maxHr`), nie tylko po zapisie
+- Na razie tylko podgląd granic stref, nie podział czasu treningu na
+  strefy (to wymaga przejścia po próbkach sesji — patrz TODO.md)
+
 ## 2026-08-26.34 — 2026-09-17
 Interaktywne słupki na wykresie dystansu (podstrona Analizy) — klik/tap
 pokazuje dokładne wartości dla danego treningu, zamiast trzeba było je
