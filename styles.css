@@ -325,6 +325,12 @@ a.secondary {
 
 footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--text-muted); opacity: 0.6; }
 
+.settings-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.settings-field-row .settings-field { min-width: 0; }
 .settings-field {
   display: flex;
   flex-direction: column;
@@ -373,6 +379,14 @@ footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.hr-zones-method {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--border);
+}
+.hr-zones-method-warning { color: var(--danger); }
 
 .empty-state {
   background: var(--surface);

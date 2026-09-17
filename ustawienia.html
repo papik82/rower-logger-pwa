@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=35">
+<link rel="stylesheet" href="styles.css?v=1.1">
 </head>
 <body>
 
@@ -41,9 +41,16 @@
     <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
   </div>
 
-  <div class="stat-card settings-field">
-    <label for="maxHr">Tętno maksymalne (bpm)</label>
-    <input type="number" id="maxHr" placeholder="np. 185" min="1" inputmode="numeric">
+  <div class="settings-field-row">
+    <div class="stat-card settings-field">
+      <label for="maxHr">Tętno maksymalne (bpm)</label>
+      <input type="number" id="maxHr" placeholder="np. 185" min="1" inputmode="numeric">
+    </div>
+
+    <div class="stat-card settings-field">
+      <label for="restingHr">Tętno spoczynkowe (bpm)</label>
+      <input type="number" id="restingHr" placeholder="np. 55 (opcjonalnie)" min="1" inputmode="numeric">
+    </div>
   </div>
 
   <div class="stat-card" id="hrZonesCard">
@@ -57,7 +64,7 @@
   <button class="secondary" id="forceUpdateBtn">Wymuś aktualizację aplikacji</button>
 </main>
 
-<script src="nav.js?v=35"></script>
-<script src="ustawienia.js?v=35"></script>
+<script src="nav.js?v=1.1"></script>
+<script src="ustawienia.js?v=1.1"></script>
 </body>
 </html>

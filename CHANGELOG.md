@@ -11,6 +11,40 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.1 — 2026-09-17
+Zmiana schematu wersjonowania — klasyczny, czytelniejszy `MAJOR.MINOR`
+zamiast dotychczasowego "z datą" (`RRRR-MM-DD.NN`, np. poprzednie
+`2026-08-26.36`). Cały dotychczasowy stan aplikacji to punkt
+odniesienia **1.0** — wpisy poniżej pod starymi numerami zostają bez
+zmian, tylko numeracja od tego wpisu w górę jest już nowa. `?v=` w
+adresach plików teraz wprost równe `APP_VERSION` (np. `?v=1.1`)
+zamiast samej końcówki starego numeru.
+
+Pola "Tętno maksymalne" i "Tętno spoczynkowe" w Ustawieniach obok
+siebie (dwie kolumny) zamiast jedno pod drugim — są ze sobą
+powiązane (razem wyznaczają strefy tętna), więc grupowanie ich
+wizualnie ma sens i oszczędza miejsca na ekranie.
+- `ustawienia.html`: oba pola owinięte w `.settings-field-row`
+- `styles.css`: `.settings-field-row` — grid 1fr 1fr, `min-width: 0`
+  na polach w środku, żeby węższa kolumna nie ścisnęła inputu
+
+## 2026-08-26.36 — 2026-09-17
+Opcjonalne pole "Tętno spoczynkowe" w Ustawieniach — dokładniejsze
+strefy tętna metodą rezerwy tętna (Karvonena), zamiast samego %HRmax.
+- `nav.js`: `getRestingHr()`; `computeHrZones(maxHr, restingHr)`
+  przyjmuje teraz drugi argument — gdy tętno spoczynkowe jest podane
+  i sensowne (dodatnie, niższe niż maksymalne), granice liczone są
+  jako `restingHr + (maxHr − restingHr) × %` (Karvonen/HRR) zamiast
+  samego `maxHr × %`. Bez tętna spoczynkowego zachowanie identyczne
+  jak wcześniej
+- `ustawienia.html`/`ustawienia.js`: nowe, opcjonalne pole "Tętno
+  spoczynkowe (bpm)" pod polem tętna maksymalnego. Karta "Strefy
+  tętna" pokazuje na dole, która metoda jest aktualnie użyta
+  (%HRmax / Karvonena), oraz ostrzeżenie na czerwono, gdy wpisana
+  wartość jest nieprawidłowa (spoczynkowe ≥ maksymalne) — w takim
+  wypadku pole jest pomijane w wyliczeniach, a zapis obu pól tętna
+  jest blokowany do czasu poprawienia
+
 ## 2026-08-26.35 — 2026-09-17
 Strefy tętna wyliczane z tętna maksymalnego — podgląd w Ustawieniach,
 bez wzoru z wieku (użytkownik wpisuje własne, znane tętno maksymalne).

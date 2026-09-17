@@ -75,6 +75,10 @@ czyta dane z arkusza, nie łączy się z rowerem).
       tętna maksymalnego, odświeżana na bieżąco przy wpisywaniu
       (`computeHrZones`/`HR_ZONE_DEFS` w `nav.js`, render w
       `ustawienia.js`)
+      [x] Opcjonalne pole "Tętno spoczynkowe" w Ustawieniach — gdy
+      podane (i niższe niż maksymalne), przełącza wyliczenia na
+      metodę rezerwy tętna (Karvonena), dokładniejszą niż sam %HRmax.
+      Podgląd pokazuje, która metoda jest aktualnie używana
       - [ ] Wykorzystanie tych granic do podziału **czasu treningu**
             na strefy i wizualizacji % czasu w każdej — to wciąż
             wymaga przejścia po próbkach `Trening_Szczegoly` sesji

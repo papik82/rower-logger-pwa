@@ -3,8 +3,9 @@
 // Podbijaj ten numer przy każdej zmianie w plikach PWA — widoczny
 // w stopce i na ekranach wczytywania danych, żeby od razu było
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
-// zaglądania do narzędzi deweloperskich.
-const APP_VERSION = "2026-08-26.35";
+// zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
+// sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
+const APP_VERSION = "1.1";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -86,10 +87,17 @@ function getMaxHr() {
   return stored > 0 ? stored : null;
 }
 
-// Standardowy 5-strefowy model %HRmax (bez tętna spoczynkowego —
-// metoda Karvonena wymagałaby dodatkowego pola, na razie niepotrzebnego).
-// Współdzielone między Ustawieniami (podgląd stref) i przyszłymi
-// wyliczeniami % czasu treningu w każdej strefie.
+// Tętno spoczynkowe — opcjonalne, włącza dokładniejszą metodę Karvonena
+// w computeHrZones() zamiast prostego % tętna maksymalnego.
+function getRestingHr() {
+  const stored = Number(localStorage.getItem("rowerLoggerRestingHr"));
+  return stored > 0 ? stored : null;
+}
+
+// Standardowy 5-strefowy podział intensywności. Wartości `low`/`high`
+// to % rezerwy tętna (HRR = maxHr − restingHr) w metodzie Karvonena,
+// albo zwykły % tętna maksymalnego, gdy restingHr nie jest podane —
+// patrz computeHrZones().
 const HR_ZONE_DEFS = [
   { label: "Regeneracja", low: 0.50, high: 0.60, color: "#4C8BF5" },
   { label: "Spalanie tłuszczu", low: 0.60, high: 0.70, color: "#2FD9C4" },
@@ -101,10 +109,20 @@ const HR_ZONE_DEFS = [
 // Granice kolejnych stref stykają się bez przerwy ani nakładania: dół
 // strefy to góra poprzedniej + 1 bpm, więc każda wartość tętna trafia
 // do dokładnie jednej strefy.
-function computeHrZones(maxHr) {
+//
+// Bez tętna spoczynkowego: granica = maxHr × %. Z tętnem spoczynkowym
+// (metoda Karvonena/HRR, dokładniejsza — uwzględnia indywidualną
+// wydolność): granica = restingHr + (maxHr − restingHr) × %. Podając
+// restingHr = 0 do wzoru Karvonena dostajemy z powrotem zwykły % HRmax,
+// więc jeden wzór obsługuje oba przypadki.
+function computeHrZones(maxHr, restingHr) {
+  const base = restingHr > 0 && restingHr < maxHr ? restingHr : 0;
+  const reserve = maxHr - base;
   return HR_ZONE_DEFS.map((zone, i) => {
-    const from = i === 0 ? Math.round(maxHr * zone.low) : Math.round(maxHr * HR_ZONE_DEFS[i - 1].high) + 1;
-    const to = i === HR_ZONE_DEFS.length - 1 ? maxHr : Math.round(maxHr * zone.high);
+    const from = i === 0
+      ? Math.round(base + reserve * zone.low)
+      : Math.round(base + reserve * HR_ZONE_DEFS[i - 1].high) + 1;
+    const to = i === HR_ZONE_DEFS.length - 1 ? maxHr : Math.round(base + reserve * zone.high);
     return { ...zone, number: i + 1, from, to };
   });
 }

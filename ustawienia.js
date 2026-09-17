@@ -2,11 +2,14 @@
 
 const urlInput = document.getElementById("appsScriptUrl");
 const maxHrInput = document.getElementById("maxHr");
+const restingHrInput = document.getElementById("restingHr");
 const statusEl = document.getElementById("settingsStatus");
 
 urlInput.value = getAppsScriptUrl();
 const currentMaxHr = getMaxHr();
 maxHrInput.value = currentMaxHr === null ? "" : currentMaxHr;
+const currentRestingHr = getRestingHr();
+restingHrInput.value = currentRestingHr === null ? "" : currentRestingHr;
 
 function showStatus(message, isError) {
   statusEl.textContent = message;
@@ -17,16 +20,36 @@ const hrZonesList = document.getElementById("hrZonesList");
 
 // Odświeżany na bieżąco przy wpisywaniu, nie tylko po zapisie — żeby
 // od razu było widać efekt, zanim ktoś kliknie "Zapisz ustawienia".
+// Tętno spoczynkowe jest opcjonalne: gdy podane i sensowne (dodatnie,
+// niższe niż maksymalne), przełącza wyliczenia na metodę Karvonena
+// (rezerwa tętna) — dokładniejszą, bo uwzględnia indywidualną
+// wydolność, a nie tylko wiek/maksimum.
 function renderHrZones() {
-  const raw = maxHrInput.value.trim();
-  const maxHr = Number(raw);
-  if (raw === "" || !Number.isFinite(maxHr) || maxHr <= 0) {
+  const maxRaw = maxHrInput.value.trim();
+  const maxHr = Number(maxRaw);
+  if (maxRaw === "" || !Number.isFinite(maxHr) || maxHr <= 0) {
     hrZonesList.innerHTML = '<p class="hr-zones-empty">Wpisz tętno maksymalne powyżej, żeby zobaczyć strefy.</p>';
     return;
   }
 
-  const zones = computeHrZones(Math.round(maxHr));
-  hrZonesList.innerHTML = zones
+  const restRaw = restingHrInput.value.trim();
+  const restingHr = Number(restRaw);
+  let methodNote;
+  let methodClass = "hr-zones-method";
+  let effectiveRestingHr = 0;
+
+  if (restRaw === "") {
+    methodNote = "Strefy liczone jako % tętna maksymalnego. Dodaj tętno spoczynkowe dla dokładniejszych granic (metoda Karvonena).";
+  } else if (!Number.isFinite(restingHr) || restingHr <= 0 || restingHr >= maxHr) {
+    methodNote = "Nieprawidłowe tętno spoczynkowe (musi być dodatnie i niższe niż maksymalne) — pominięte, strefy liczone jako % tętna maksymalnego.";
+    methodClass += " hr-zones-method-warning";
+  } else {
+    effectiveRestingHr = Math.round(restingHr);
+    methodNote = "Strefy liczone metodą rezerwy tętna (Karvonena) — uwzględniają tętno spoczynkowe.";
+  }
+
+  const zones = computeHrZones(Math.round(maxHr), effectiveRestingHr);
+  const rows = zones
     .map(
       (z) => `
       <div class="hr-zone-row">
@@ -36,28 +59,59 @@ function renderHrZones() {
       </div>`
     )
     .join("");
+  hrZonesList.innerHTML = rows + `<p class="${methodClass}">${methodNote}</p>`;
 }
 
 maxHrInput.addEventListener("input", renderHrZones);
+restingHrInput.addEventListener("input", renderHrZones);
 renderHrZones();
 
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+  // Walidacja obu pól tętna przed zapisem czegokolwiek — inaczej błąd
+  // w jednym polu mógłby zostawić ustawienia w połowie zaktualizowane.
+  const maxHrRaw = maxHrInput.value.trim();
+  let maxHrValue = null;
+  if (maxHrRaw !== "") {
+    maxHrValue = Number(maxHrRaw);
+    if (!Number.isFinite(maxHrValue) || maxHrValue <= 0) {
+      showStatus("Nieprawidłowa wartość tętna maksymalnego — nie zapisano.", true);
+      return;
+    }
+    maxHrValue = Math.round(maxHrValue);
+  }
+
+  const restingHrRaw = restingHrInput.value.trim();
+  let restingHrValue = null;
+  if (restingHrRaw !== "") {
+    restingHrValue = Number(restingHrRaw);
+    if (!Number.isFinite(restingHrValue) || restingHrValue <= 0) {
+      showStatus("Nieprawidłowa wartość tętna spoczynkowego — nie zapisano.", true);
+      return;
+    }
+    if (maxHrValue !== null && restingHrValue >= maxHrValue) {
+      showStatus("Tętno spoczynkowe musi być niższe niż tętno maksymalne — nie zapisano.", true);
+      return;
+    }
+    restingHrValue = Math.round(restingHrValue);
+  }
+
   localStorage.setItem("rowerLoggerAppsScriptUrl", urlInput.value.trim());
   // Adres mógł się zmienić — bez tego Wyniki/Analizy pokazałyby jeszcze
   // przez chwilę dane z poprzedniego arkusza z cache'a.
   clearAppsScriptDataCache();
 
-  const maxHrRaw = maxHrInput.value.trim();
-  if (maxHrRaw === "") {
+  if (maxHrValue === null) {
     localStorage.removeItem("rowerLoggerMaxHr");
   } else {
-    const value = Number(maxHrRaw);
-    if (!Number.isFinite(value) || value <= 0) {
-      showStatus("Nieprawidłowa wartość tętna maksymalnego — nie zapisano.", true);
-      return;
-    }
-    localStorage.setItem("rowerLoggerMaxHr", String(Math.round(value)));
-    maxHrInput.value = Math.round(value);
+    localStorage.setItem("rowerLoggerMaxHr", String(maxHrValue));
+    maxHrInput.value = maxHrValue;
+  }
+
+  if (restingHrValue === null) {
+    localStorage.removeItem("rowerLoggerRestingHr");
+  } else {
+    localStorage.setItem("rowerLoggerRestingHr", String(restingHrValue));
+    restingHrInput.value = restingHrValue;
   }
 
   renderHrZones();
