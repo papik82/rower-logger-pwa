@@ -11,6 +11,16 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.10 — 2026-09-18
+Ikonka odświeżania w nagłówku Wyników i Analiz dopasowana do reszty
+interfejsu — zamiast kolorowego emoji 🔄 (renderowanego jako niebieski
+kwadrat, różnie zależnie od systemu) liniowy SVG w stylu ikon menu.
+- `analiza.html`, `wyniki.html`: `#refreshBtn` z inline `<svg>` (okrąg
+  ze strzałką, `stroke="currentColor"`, grubość linii 1.8) zamiast emoji
+- `styles.css`: `.refresh-btn` bez `font-size` (już niepotrzebny),
+  `padding: 0`, nowy stan `:hover` (jaśniejszy kolor); animacja obrotu
+  i `:active` w kolorze akcentu bez zmian
+
 ## 1.9 — 2026-09-18
 Aplikacja w zwykłej przeglądarce desktopowej (Chrome / Firefox / Safari).
 Analizy, Wyniki i Ustawienia od początku nie używały Web Bluetooth —
