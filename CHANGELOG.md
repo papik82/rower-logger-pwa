@@ -11,6 +11,14 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.4 — 2026-09-18
+Przywrócony pomarańczowy akcent na igle/piaście loga (`--hr-color`) —
+sam pierścień zostaje biały, ale igła i piasta wyróżniają się kolorem
+zamiast być jednolicie białe jak reszta glifu.
+- `icon-192.png`, `icon-512.png`: needle + hub dot z powrotem w
+  kolorze `#FF9F43` (jak w poprzedniej, dwukolorowej wersji sprzed
+  przejścia na gradientowe tło), pierścień bez zmian (biały)
+
 ## 1.3 — 2026-09-18
 Logo poprawione na pełne, gradientowe tło zamiast ciemnego kwadratu na
 środku — dopasowane do stylu sąsiednich ikon na ekranie głównym
