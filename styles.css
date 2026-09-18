@@ -296,7 +296,7 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 #zonesChart { width: 100%; height: 140px; display: block; cursor: pointer; margin-top: 14px; }
 .zones-note { font-size: 11px; color: var(--text-muted); margin: 10px 0 0; }
 .zones-note a { color: var(--accent); }
-.records-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.records-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
 .record-tile {
   background: var(--surface-2);
   border: 0.5px solid var(--border);
@@ -349,6 +349,27 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   display: none;
 }
 #configWarning.visible { display: block; }
+
+#bluetoothNotice {
+  background: rgba(245, 197, 66, 0.1);
+  border: 0.5px solid #F5C542;
+  color: #F5C542;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  display: none;
+}
+#bluetoothNotice.visible { display: block; }
+
+/* Analizy i Wyniki to strony do czytania danych, nie tylko na telefon —
+   na szerokim ekranie zajmują więcej miejsca niż wąska kolumna 480 px
+   (tabela Wyników mieści więcej kolumn, wykresy są większe). */
+@media (min-width: 900px) {
+  body.wide { max-width: 960px; }
+  body.wide #trendChart { height: 220px; }
+  body.wide #zonesChart { height: 180px; }
+}
 
 #summaryGapWarning {
   background: rgba(255, 92, 92, 0.1);

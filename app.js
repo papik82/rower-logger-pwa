@@ -827,6 +827,7 @@ document.getElementById("recordBtn").addEventListener("click", () => {
   }
 });
 
+document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
 checkConfig();
 updateResistanceDisplay();
 retryOfflineQueue();

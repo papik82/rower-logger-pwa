@@ -523,7 +523,9 @@ function drawChartTooltip(ctx, canvasWidth, selected, colors, lines) {
   boxY = Math.max(2, Math.min(boxY, ctx.canvas.clientHeight - CHART_PADDING_BOTTOM - boxHeight));
 
   ctx.beginPath();
-  ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6);
+  // roundRect: Safari < 16 i starsze Firefoksy go nie mają — wtedy zwykły prostokąt.
+  if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6);
+  else ctx.rect(boxX, boxY, boxWidth, boxHeight);
   ctx.fillStyle = colors.surface2;
   ctx.fill();
   ctx.strokeStyle = colors.border;

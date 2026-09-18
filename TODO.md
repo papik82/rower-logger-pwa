@@ -86,10 +86,19 @@ czyta dane z arkusza, nie łączy się z rowerem).
       karta „Czas w strefach tętna" w Analizach (`buildZonesCard` w
       `analiza.js`), na próbkach `Trening_Szczegoly`, za wybrany
       zakres dat, plus słupki skumulowane na trening
-- [ ] Dostępność w zwykłej przeglądarce desktopowej (Chrome/Firefox/
-      Safari) — bez wymogu Web Bluetooth, bo to tylko odczyt danych
+- [x] Dostępność w zwykłej przeglądarce desktopowej (Chrome/Firefox/
+      Safari) — bez wymogu Web Bluetooth, bo to tylko odczyt danych.
+      Szeroki układ Analiz i Wyników (`body.wide`), baner o braku Web
+      Bluetooth na stronie Trening, zapasowy `roundRect`. Niesprawdzone
+      w Firefoksie i Safari — tylko przegląd użytych API
 
 ### Do ustalenia po drodze
+- [ ] Mechanizm eliminujący z analiz tętna (wykresy, strefy, średnie,
+      rekordy) treningi ze zbyt licznymi zerowymi odczytami pulsu
+      (np. utrata kontaktu paska). Do ustalenia: próg (% zerowych
+      próbek), czy konfigurowalny w Ustawieniach, czy tylko
+      wykluczać z analiz tętna, a zostawiać w pozostałych (dystans,
+      moc)
 - [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
       "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
       15 min" ma być liczony tylko dla treningów z zaznaczonym tym

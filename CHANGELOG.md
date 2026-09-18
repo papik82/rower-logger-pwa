@@ -11,6 +11,28 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.9 — 2026-09-18
+Aplikacja w zwykłej przeglądarce desktopowej (Chrome / Firefox / Safari).
+Analizy, Wyniki i Ustawienia od początku nie używały Web Bluetooth —
+poprawione zostało to, co przeszkadzało na dużym ekranie i w
+przeglądarkach bez Bluetooth.
+- Szeroki układ (`body.wide`, od 900 px do 960 px zamiast wąskiej
+  kolumny 480 px) dla Analiz i Wyników: tabela Wyników mieści wszystkie
+  kolumny bez przewijania poziomego, wykresy są wyższe. Na telefonie bez
+  zmian. Trening i Ustawienia zostają wąskie
+- `.records-grid`: kolumny `auto-fill` zamiast stałych dwóch — na
+  szerokim ekranie 5–6 kafelków rekordów w rzędzie, na telefonie nadal 2
+- Trening: żółty baner „Ta przeglądarka nie obsługuje Web Bluetooth…"
+  (`#bluetoothNotice`), gdy `navigator.bluetooth` nie istnieje
+  (Firefox, Safari) — zamiast samych okienek `alert()` po kliknięciu.
+  Wskazuje, że reszta aplikacji działa normalnie
+- `ctx.roundRect` (dymki wykresów) z zapasowym prostokątem dla
+  starszych Safari/Firefoksów
+- Przegląd zgodności: reszta użytych API (`Intl` z `sv-SE`/`hourCycle`,
+  `<input type=date>`, `color-scheme`, Service Worker) jest wspierana
+  przez aktualne Chrome, Firefox i Safari. Nie testowane w Firefoksie
+  i Safari (środowisko dev ma tylko silnik Chromium)
+
 ## 1.8 — 2026-09-18
 Czas w strefach tętna — nowa karta w Analizach, pod wykresem trendów.
 - `analiza.js`: `buildZonesCard()` liczy z próbek `Trening_Szczegoly`
