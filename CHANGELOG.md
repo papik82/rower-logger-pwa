@@ -11,6 +11,20 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.2 — 2026-09-18
+Nowe logo aplikacji — otwarty pierścień (wskaźnik/gauge) z pomarańczową
+igłą i piastą zamiast dwóch koncentrycznych okręgów. Zachowuje ten sam
+motyw (okręgi na ciemnym tle), ale jest bardziej wyrazisty i czytelny
+w małych rozmiarach (favicon), a przy okazji wykorzystuje dwukolorową
+paletę (teal/pomarańcz), która już oznacza prędkość/puls w reszcie
+aplikacji.
+- `icon-192.png`, `icon-512.png` podmienione — wygenerowane skryptem
+  Python (`numpy` + ręczny zapis PNG, bez zewnętrznych bibliotek
+  graficznych), z 4× nadpróbkowaniem dla gładkich krawędzi
+- Nazwy plików bez zmian, więc `manifest.webmanifest` i tagi
+  `<link rel="icon">`/`<link rel="apple-touch-icon">` w HTML nie
+  wymagały edycji
+
 ## 1.1 — 2026-09-17
 Zmiana schematu wersjonowania — klasyczny, czytelniejszy `MAJOR.MINOR`
 zamiast dotychczasowego "z datą" (`RRRR-MM-DD.NN`, np. poprzednie
