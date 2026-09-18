@@ -281,6 +281,22 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 .range-field input:focus { outline: none; border-color: var(--accent); }
 .chart-empty { font-size: 13px; color: var(--text-muted); margin: 14px 0 6px; }
 
+#analysisContent { display: flex; flex-direction: column; gap: 20px; }
+.records-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.record-tile {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 0;
+}
+.record-tile.latest { border-color: var(--accent); }
+.record-label { font-size: 11px; color: var(--text-muted); margin: 0 0 4px; }
+.record-value { font-size: 18px; font-weight: 500; margin: 0; font-variant-numeric: tabular-nums; }
+.record-unit { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 3px; }
+.record-date { font-size: 11px; color: var(--text-muted); margin: 4px 0 0; }
+.record-new { color: var(--accent); }
+
 #logBox {
   background: var(--surface);
   border: 0.5px solid var(--border);

@@ -262,7 +262,106 @@ function renderAnalysis(container, rows) {
 
   container.className = "";
   container.replaceChildren(card);
+  const recordsCard = buildRecordsCard(rows);
+  if (recordsCard) container.appendChild(recordsCard);
   update();
+}
+
+// Czas trwania bywa w arkuszu zwykłym tekstem "HH:MM:SS" albo pełnym
+// znacznikiem UTC (Arkusze same rozpoznają go jako godzinę) — ta sama
+// obsługa obu wariantów co formatDuration() w wyniki.js.
+function durationSeconds(value) {
+  if (typeof value === "string" && /^\d{1,2}:\d{2}:\d{2}$/.test(value)) {
+    const [h, m, s] = value.split(":").map(Number);
+    return h * 3600 + m * 60 + s;
+  }
+  const d = new Date(value);
+  if (isNaN(d)) return null;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Warsaw",
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(d);
+  const get = (type) => Number(parts.find((p) => p.type === type).value);
+  const total = get("hour") * 3600 + get("minute") * 60 + get("second");
+  return total > 0 ? total : null;
+}
+
+function formatDurationHms(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${h}:${pad(m)}:${pad(s)}`;
+}
+
+// Rekordy osobiste — "więcej = lepiej" dla każdej pozycji. Puls
+// pokazujemy tylko jako maksimum (wysoka średnia to nie osiągnięcie).
+const RECORDS = [
+  { label: "Najdłuższy dystans", unit: "km", get: (r) => scaled(r["Dystans całkowity (m)"], 0.001), fmt: (v) => v.toFixed(2) },
+  { label: "Najdłuższy trening", unit: "", get: (r) => durationSeconds(r["Czas trwania (HH:MM:SS)"]), fmt: formatDurationHms },
+  { label: "Najlepsze 15 min", unit: "km", get: (r) => scaled(r["Dystans 15 min (m)"], 0.001), fmt: (v) => v.toFixed(2) },
+  { label: "Najwyższa śr. prędkość", unit: "km/h", get: (r) => scaled(r["Śr. prędkość (km/h)"], 1), fmt: (v) => v.toFixed(1) },
+  { label: "Najwyższa maks. prędkość", unit: "km/h", get: (r) => scaled(r["Maks. prędkość (km/h)"], 1), fmt: (v) => v.toFixed(1) },
+  { label: "Najwyższa śr. moc", unit: "W", get: (r) => scaled(r["Śr. moc (W)"], 1), fmt: (v) => v.toFixed(1) },
+  { label: "Najwyższa maks. moc", unit: "W", get: (r) => scaled(r["Maks. moc (W)"], 1), fmt: (v) => v.toFixed(0) },
+  { label: "Najwyższa maks. kadencja", unit: "obr/min", get: (r) => scaled(r["Maks. kadencja (obr/min)"], 1), fmt: (v) => v.toFixed(0) },
+  { label: "Najwyższy maks. puls", unit: "bpm", get: (r) => scaled(r["Maks. puls (bpm)"], 1), fmt: (v) => v.toFixed(0) },
+  { label: "Najwięcej kalorii", unit: "kcal", get: (r) => scaled(r["Kalorie łącznie (kcal)"], 1), fmt: (v) => v.toFixed(0) },
+];
+
+function scaled(raw, scale) {
+  const n = toNumber(raw);
+  return n === null ? null : n * scale;
+}
+
+// Karta z rekordami: dla każdej pozycji najlepsza wartość z całej
+// historii i data pierwszego jej osiągnięcia (przy remisie wygrywa
+// wcześniejszy trening). Rekord ustanowiony w ostatnim treningu jest
+// wyróżniony.
+function buildRecordsCard(rows) {
+  const chronological = rows
+    .filter((r) => r["Data"])
+    .slice()
+    .sort((a, b) => new Date(a["Data"]) - new Date(b["Data"]));
+  if (chronological.length === 0) return null;
+  const lastDay = warsawDay(chronological[chronological.length - 1]["Data"]);
+
+  const tiles = [];
+  RECORDS.forEach((record) => {
+    let best = null;
+    chronological.forEach((row) => {
+      const value = record.get(row);
+      if (value !== null && (best === null || value > best.value)) {
+        best = { value, date: row["Data"] };
+      }
+    });
+    if (best) tiles.push({ record, best, isLatest: warsawDay(best.date) === lastDay });
+  });
+  if (tiles.length === 0) return null;
+
+  const card = el("div", "stat-card records-card");
+  card.appendChild(el("p", "label", "Rekordy osobiste"));
+
+  const grid = el("div", "records-grid");
+  tiles.forEach(({ record, best, isLatest }) => {
+    const tile = el("div", isLatest ? "record-tile latest" : "record-tile");
+    tile.appendChild(el("p", "record-label", record.label));
+
+    const value = el("p", "record-value", record.fmt(best.value));
+    if (record.unit) value.appendChild(el("span", "record-unit", record.unit));
+    tile.appendChild(value);
+
+    const date = el("p", "record-date", formatFullDate(best.date));
+    if (isLatest) date.appendChild(el("span", "record-new", " · ostatni trening"));
+    tile.appendChild(date);
+
+    grid.appendChild(tile);
+  });
+  card.appendChild(grid);
+  return card;
 }
 
 // Wspólny układ poziomy dla rysowania i obsługi kliknięć. Wykres

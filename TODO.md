@@ -64,9 +64,10 @@ czyta dane z arkusza, nie łączy się z rowerem).
             kolumnie) pokazujące etykietę z dokładną wartością dla
             danej pozycji — wykres dystansu na podstronie Analizy
             (`drawTrendChart`/`drawChartTooltip` w `analiza.js`)
-- [ ] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
+- [x] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
-      z historii
+      z historii — karta pod wykresem trendów w Analizach
+      (`RECORDS`/`buildRecordsCard` w `analiza.js`)
 - [ ] **Strefy tętna** — podział czasu treningu na strefy (na bazie
       tętna maksymalnego), wizualizacja % czasu w każdej strefie.
       [x] Pole "Tętno maksymalne" w Ustawieniach (`rowerLoggerMaxHr`

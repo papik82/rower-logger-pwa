@@ -11,6 +11,23 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.6 — 2026-09-18
+Rekordy osobiste w Analizach — karta pod wykresem trendów.
+- `analiza.js`: `buildRecordsCard()` liczy z `Trening_Podsumowania`
+  najlepszą wartość z całej historii dla 10 pozycji (`RECORDS`):
+  najdłuższy dystans i trening, najlepsze 15 min, najwyższa śr. i
+  maks. prędkość, śr. i maks. moc, maks. kadencja, maks. puls,
+  najwięcej kalorii. Kafelek pokazuje wartość i datę pierwszego jej
+  osiągnięcia (remis wygrywa wcześniejszy trening); rekord ustanowiony
+  w ostatnim treningu ma akcent i dopisek „ostatni trening"
+- Zera i puste komórki pomijane jak na wykresach (brak danych, nie
+  wartość); pozycje bez żadnych danych nie dostają kafelka
+- `durationSeconds()` — parsowanie czasu trwania z obu wariantów
+  zapisu w arkuszu (tekst `HH:MM:SS` i znacznik UTC), spójne z
+  `formatDuration()` w Wynikach
+- `styles.css`: `.records-grid`, `.record-tile`, odstęp między kartami
+  w `#analysisContent`
+
 ## 1.5 — 2026-09-18
 Wykresy trendów w Analizach — prędkość, moc, puls i kadencja obok
 dystansu, z wyborem zakresu dat.
