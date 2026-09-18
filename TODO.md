@@ -49,9 +49,9 @@ czyta dane z arkusza, nie łączy się z rowerem).
       [x] Pierwszy, podstawowy wykres słupkowy: dystans (km) na kolejne
       treningi (`analiza.js`, płótno bez zewnętrznej biblioteki, jak
       `sparkline` w `app.js`)
-      [x] Pozostałe metryki (prędkość, moc, puls, kadencja — wykres
-      liniowy średnia + maksimum) i wybór zakresu dat (presety + własne
-      Od–Do) — `METRICS`/`drawTrendChart` w `analiza.js`
+      [x] Pozostałe metryki (prędkość, moc, puls, kadencja — słupki
+      średnia + maksimum, tak samo jak dystans) i wybór zakresu dat
+      (presety + własne Od–Do) — `METRICS`/`drawTrendChart` w `analiza.js`
       [x] "Dystans 15 min" — najlepszy 15-minutowy odcinek treningu
       pod względem dystansu (`bestDistanceInWindow` w `app.js`, ta
       sama logika zduplikowana w `apps-script.gs` do jednorazowego

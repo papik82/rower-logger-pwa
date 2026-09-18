@@ -11,6 +11,20 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.7 — 2026-09-18
+Wszystkie wykresy trendów w Analizach jednolicie słupkowe, na wzór
+dystansu — prędkość, moc, puls i kadencja przestały być liniowe.
+- `analiza.js`: usunięty wariant liniowy (`drawLines`, pole `type` w
+  `METRICS`, lewy margines na oś Y). Jedna ścieżka rysowania w
+  `drawTrendChart`: szeroki słupek średniej (kolor akcentu) + węższy
+  słupek drugiej serii (kolor pulsu) na wierzchu — dla metryk innych
+  niż dystans jest to maksimum, więc wystaje ponad średnią
+- Obwódka zaznaczenia i dymek liczone od wyższego z dwóch słupków
+- Uwaga: oś od zera oznacza, że małe różnice (np. średni puls 130 vs
+  140 bpm) są słabo widoczne na wykresie — dokładne wartości daje dymek
+- `chartLayout()` usunięte, klik i etykiety dat liczą pozycję wprost
+  z szerokości płótna
+
 ## 1.6 — 2026-09-18
 Rekordy osobiste w Analizach — karta pod wykresem trendów.
 - `analiza.js`: `buildRecordsCard()` liczy z `Trening_Podsumowania`

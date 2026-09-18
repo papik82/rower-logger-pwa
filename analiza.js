@@ -1,36 +1,34 @@
 "use strict";
 
-// Metryki dostępne na wykresie trendów. `main` to wartość rysowana jako
-// słupek/linia w kolorze akcentu, `overlay` — druga seria w kolorze
-// pulsu (najlepsze 15 min dla dystansu, wartość maksymalna dla reszty).
+// Metryki dostępne na wykresie trendów — wszystkie rysowane tak samo
+// (słupki od zera). `main` to szeroki słupek w kolorze akcentu,
+// `overlay` — węższy słupek na wierzchu w kolorze pulsu (najlepsze
+// 15 min dla dystansu, wartość maksymalna dla reszty).
 // `col` to nagłówek kolumny w arkuszu `Trening_Podsumowania`, `scale`
 // przelicza jednostkę arkusza na wyświetlaną (np. m → km).
-// Dystans zostaje słupkowy (suma za trening, oś od zera), reszta jest
-// liniowa z automatycznym zakresem osi — przy słupkach od zera różnice
-// rzędu 130 vs 140 bpm byłyby praktycznie niewidoczne.
 const METRICS = [
   {
-    id: "distance", label: "Dystans", unit: "km", decimals: 2, type: "bars",
+    id: "distance", label: "Dystans", unit: "km", decimals: 2,
     main: { col: "Dystans całkowity (m)", scale: 0.001, name: "Dystans", legend: "cały trening" },
     overlay: { col: "Dystans 15 min (m)", scale: 0.001, name: "Najlepsze 15 min", legend: "najlepsze 15 min" },
   },
   {
-    id: "speed", label: "Prędkość", unit: "km/h", decimals: 1, type: "line",
+    id: "speed", label: "Prędkość", unit: "km/h", decimals: 1,
     main: { col: "Śr. prędkość (km/h)", scale: 1, name: "Śr. prędkość", legend: "średnia" },
     overlay: { col: "Maks. prędkość (km/h)", scale: 1, name: "Maks. prędkość", legend: "maksymalna" },
   },
   {
-    id: "power", label: "Moc", unit: "W", decimals: 1, type: "line",
+    id: "power", label: "Moc", unit: "W", decimals: 1,
     main: { col: "Śr. moc (W)", scale: 1, name: "Śr. moc", legend: "średnia" },
     overlay: { col: "Maks. moc (W)", scale: 1, name: "Maks. moc", legend: "maksymalna" },
   },
   {
-    id: "hr", label: "Puls", unit: "bpm", decimals: 1, type: "line",
+    id: "hr", label: "Puls", unit: "bpm", decimals: 1,
     main: { col: "Śr. puls (bpm)", scale: 1, name: "Śr. puls", legend: "średni" },
     overlay: { col: "Maks. puls (bpm)", scale: 1, name: "Maks. puls", legend: "maksymalny" },
   },
   {
-    id: "cadence", label: "Kadencja", unit: "obr/min", decimals: 1, type: "line",
+    id: "cadence", label: "Kadencja", unit: "obr/min", decimals: 1,
     main: { col: "Śr. kadencja (obr/min)", scale: 1, name: "Śr. kadencja", legend: "średnia" },
     overlay: { col: "Maks. kadencja (obr/min)", scale: 1, name: "Maks. kadencja", legend: "maksymalna" },
   },
@@ -46,8 +44,6 @@ const RANGE_PRESETS = [
 // Wybór metryki i zakresu przeżywa odświeżenie danych (przycisk 🔄),
 // bo renderAnalysis() buduje kartę od nowa.
 const analysisState = { metricId: "distance", presetId: "all", from: "", to: "" };
-
-const LINE_CHART_LEFT_PADDING = 34;
 
 let activeChartCanvas = null;
 let activeChartSessions = null;
@@ -218,9 +214,9 @@ function renderAnalysis(container, rows) {
     if (!activeChartSessions || activeChartSessions.length === 0) return;
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
-    const { left, step } = chartLayout(canvas.clientWidth, activeChartSessions.length, activeChartMetric);
-    const index = Math.max(0, Math.min(activeChartSessions.length - 1, Math.floor((x - left) / step)));
-    // Ponowny klik na tym samym punkcie chowa etykietę zamiast trzymać
+    const step = canvas.clientWidth / activeChartSessions.length;
+    const index = Math.max(0, Math.min(activeChartSessions.length - 1, Math.floor(x / step)));
+    // Ponowny klik na tym samym słupku chowa etykietę zamiast trzymać
     // ją przyklejoną na stałe.
     activeChartSelectedIndex = activeChartSelectedIndex === index ? null : index;
     drawTrendChart(canvas, activeChartSessions, activeChartSelectedIndex, activeChartMetric);
@@ -255,7 +251,7 @@ function renderAnalysis(container, rows) {
     canvas.style.display = "";
     canvas.setAttribute(
       "aria-label",
-      `Wykres ${metric.type === "bars" ? "słupkowy" : "liniowy"}: ${metric.label.toLowerCase()} (${metric.unit}) dla kolejnych treningów`
+      `Wykres słupkowy: ${metric.label.toLowerCase()} (${metric.unit}) dla kolejnych treningów`
     );
     drawTrendChart(canvas, sessions, null, metric);
   }
@@ -364,13 +360,6 @@ function buildRecordsCard(rows) {
   return card;
 }
 
-// Wspólny układ poziomy dla rysowania i obsługi kliknięć. Wykres
-// liniowy zostawia po lewej miejsce na etykiety osi Y.
-function chartLayout(width, count, metric) {
-  const left = metric.type === "line" ? LINE_CHART_LEFT_PADDING : 0;
-  return { left, step: (width - left) / count };
-}
-
 function drawTrendChart(canvas, sessions, selectedIndex, metric) {
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
@@ -382,52 +371,71 @@ function drawTrendChart(canvas, sessions, selectedIndex, metric) {
   ctx.clearRect(0, 0, w, h);
 
   const style = getComputedStyle(document.documentElement);
-  const colors = {
-    accent: style.getPropertyValue("--accent").trim() || "#2FD9C4",
-    hr: style.getPropertyValue("--hr-color").trim() || "#FF9F43",
-    muted: style.getPropertyValue("--text-muted").trim() || "#8CA0A6",
-    text: style.getPropertyValue("--text").trim() || "#F2F5F4",
-    border: style.getPropertyValue("--border").trim() || "#2A353A",
-  };
+  const accent = style.getPropertyValue("--accent").trim() || "#2FD9C4";
+  const hrColor = style.getPropertyValue("--hr-color").trim() || "#FF9F43";
+  const muted = style.getPropertyValue("--text-muted").trim() || "#8CA0A6";
+  const text = style.getPropertyValue("--text").trim() || "#F2F5F4";
 
   const paddingTop = 16;
   const paddingBottom = 22;
   const chartHeight = h - paddingTop - paddingBottom;
-  const { left, step } = chartLayout(w, sessions.length, metric);
-  const geom = { left, step, paddingTop, chartHeight };
+  const overlays = sessions.map((s) => s.overlay).filter((v) => v !== null);
+  const maxValue = Math.max(...sessions.map((s) => s.value), ...overlays, 1);
 
-  const selected =
-    metric.type === "bars"
-      ? drawBars(ctx, sessions, geom, colors, selectedIndex)
-      : drawLines(ctx, sessions, geom, colors, selectedIndex);
+  const step = w / sessions.length;
+  const barWidth = Math.max(3, Math.min(28, step - 6));
+
+  let selected = null;
+
+  sessions.forEach((s, i) => {
+    const x = i * step + (step - barWidth) / 2;
+
+    const barHeight = (s.value / maxValue) * chartHeight;
+    const y = paddingTop + (chartHeight - barHeight);
+    ctx.fillStyle = accent;
+    ctx.fillRect(x, y, barWidth, barHeight);
+
+    // Druga seria — węższy słupek na wierzchu (dla dystansu: jaka część
+    // treningu przypadła na najlepszy 15-minutowy odcinek; dla reszty
+    // metryk: wartość maksymalna, więc wystaje ponad średnią).
+    let overlayY = y;
+    if (s.overlay !== null) {
+      const innerWidth = Math.max(2, barWidth * 0.5);
+      const innerX = x + (barWidth - innerWidth) / 2;
+      const overlayHeight = (s.overlay / maxValue) * chartHeight;
+      overlayY = paddingTop + (chartHeight - overlayHeight);
+      ctx.fillStyle = hrColor;
+      ctx.fillRect(innerX, overlayY, innerWidth, overlayHeight);
+    }
+
+    if (i === selectedIndex) {
+      // Zapamiętane do narysowania obwódki i etykiety na wierzchu,
+      // dopiero po wszystkich słupkach — inaczej sąsiedni słupek
+      // mógłby ją częściowo zasłonić. Obwódka i dymek liczone od
+      // wyższego z dwóch słupków.
+      const top = Math.min(y, overlayY);
+      selected = {
+        session: s,
+        x,
+        y: top,
+        barWidth,
+        barHeight: paddingTop + chartHeight - top,
+        barCenterX: x + barWidth / 2,
+      };
+    }
+  });
 
   if (selected) {
-    if (metric.type === "bars") {
-      ctx.strokeStyle = colors.text;
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(selected.x - 1.5, selected.y - 1.5, selected.barWidth + 3, selected.barHeight + 3);
-    } else {
-      ctx.strokeStyle = colors.muted;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(selected.barCenterX, paddingTop);
-      ctx.lineTo(selected.barCenterX, paddingTop + chartHeight);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.strokeStyle = colors.text;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(selected.barCenterX, selected.y, 5, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    ctx.strokeStyle = text;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(selected.x - 1.5, selected.y - 1.5, selected.barWidth + 3, selected.barHeight + 3);
     drawChartTooltip(ctx, w, selected, style, metric);
   }
 
-  // Etykiety dat pod wykresem — pokazujemy tylko tyle, ile się zmieści
-  // bez zlewania się (co N-ty punkt). Ostatni trening zawsze widoczny,
+  // Etykiety dat pod słupkami — pokazujemy tylko tyle, ile się zmieści
+  // bez zlewania się (co N-ty słupek). Ostatni trening zawsze widoczny,
   // ale zastępuje najbliższy regularny znacznik zamiast się z nim zlewać.
-  const maxLabels = Math.max(1, Math.floor((w - left) / 48));
+  const maxLabels = Math.max(1, Math.floor(w / 48));
   const labelStep = Math.max(1, Math.ceil(sessions.length / maxLabels));
   const shownIndices = [];
   for (let i = 0; i < sessions.length; i += labelStep) shownIndices.push(i);
@@ -444,139 +452,28 @@ function drawTrendChart(canvas, sessions, selectedIndex, metric) {
   ctx.font = "10px Roboto, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = colors.muted;
-  // Etykieta przy skrajnym punkcie nie może wychodzić poza płótno, a
+  ctx.fillStyle = muted;
+  // Etykieta przy skrajnym słupku nie może wychodzić poza płótno, a
   // przesunięcie mogło ją zbliżyć do sąsiedniej — idąc od końca,
   // pomijamy etykiety nachodzące na już zaplanowaną następną.
   const labels = shownIndices.map((i) => {
-    const text = formatShortDate(sessions[i].date);
-    const half = ctx.measureText(text).width / 2;
-    const x = Math.max(half, Math.min(w - half, left + i * step + step / 2));
-    return { text, x, half };
+    const label = formatShortDate(sessions[i].date);
+    const half = ctx.measureText(label).width / 2;
+    const x = Math.max(half, Math.min(w - half, i * step + step / 2));
+    return { label, x, half };
   });
   let nextStart = Infinity;
   for (let k = labels.length - 1; k >= 0; k--) {
-    const { text, x, half } = labels[k];
+    const { label, x, half } = labels[k];
     if (x + half + 4 > nextStart) continue;
-    ctx.fillText(text, x, h - 8);
+    ctx.fillText(label, x, h - 8);
     nextStart = x - half;
   }
 }
 
-// Słupki od zera; `overlay` to węższy słupek na wierzchu (dla dystansu:
-// jaka część treningu przypadła na najlepszy 15-minutowy odcinek).
-function drawBars(ctx, sessions, geom, colors, selectedIndex) {
-  const { left, step, paddingTop, chartHeight } = geom;
-  const overlays = sessions.map((s) => s.overlay).filter((v) => v !== null);
-  const maxValue = Math.max(...sessions.map((s) => s.value), ...overlays, 1);
-  const barWidth = Math.max(3, Math.min(28, step - 6));
-
-  let selected = null;
-  sessions.forEach((s, i) => {
-    const x = left + i * step + (step - barWidth) / 2;
-
-    const barHeight = (s.value / maxValue) * chartHeight;
-    const y = paddingTop + (chartHeight - barHeight);
-    ctx.fillStyle = colors.accent;
-    ctx.fillRect(x, y, barWidth, barHeight);
-
-    if (s.overlay !== null) {
-      const innerWidth = Math.max(2, barWidth * 0.5);
-      const innerX = x + (barWidth - innerWidth) / 2;
-      const overlayHeight = (s.overlay / maxValue) * chartHeight;
-      ctx.fillStyle = colors.hr;
-      ctx.fillRect(innerX, paddingTop + (chartHeight - overlayHeight), innerWidth, overlayHeight);
-    }
-
-    if (i === selectedIndex) {
-      // Zapamiętane do narysowania obwódki i etykiety na wierzchu,
-      // dopiero po wszystkich słupkach — inaczej sąsiedni słupek
-      // mógłby ją częściowo zasłonić.
-      selected = { session: s, x, y, barWidth, barHeight, barCenterX: x + barWidth / 2 };
-    }
-  });
-  return selected;
-}
-
-// Dwie linie (średnia + maksimum) na wspólnej osi Y dobranej do danych,
-// z trzema poziomicami i etykietami po lewej.
-function drawLines(ctx, sessions, geom, colors, selectedIndex) {
-  const { left, step, paddingTop, chartHeight } = geom;
-
-  const all = [];
-  sessions.forEach((s) => {
-    all.push(s.value);
-    if (s.overlay !== null) all.push(s.overlay);
-  });
-  let lo = Math.min(...all);
-  let hi = Math.max(...all);
-  if (hi === lo) {
-    lo -= 1;
-    hi += 1;
-  }
-  const pad = (hi - lo) * 0.1;
-  lo = Math.max(0, lo - pad);
-  hi += pad;
-
-  const yFor = (v) => paddingTop + (1 - (v - lo) / (hi - lo)) * chartHeight;
-  const xFor = (i) => left + (i + 0.5) * step;
-
-  ctx.font = "10px Roboto, system-ui, sans-serif";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.lineWidth = 0.5;
-  [hi, (hi + lo) / 2, lo].forEach((v) => {
-    const y = yFor(v);
-    ctx.strokeStyle = colors.border;
-    ctx.beginPath();
-    ctx.moveTo(left, y);
-    ctx.lineTo(left + sessions.length * step, y);
-    ctx.stroke();
-    ctx.fillStyle = colors.muted;
-    ctx.fillText((hi - lo) >= 10 ? v.toFixed(0) : v.toFixed(1), 0, y);
-  });
-
-  const dotRadius = Math.max(1.5, Math.min(3, step / 3));
-  const drawSeries = (getValue, color, lineWidth, alpha) => {
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    let penDown = false;
-    sessions.forEach((s, i) => {
-      const v = getValue(s);
-      if (v === null) {
-        penDown = false;
-        return;
-      }
-      if (penDown) ctx.lineTo(xFor(i), yFor(v));
-      else ctx.moveTo(xFor(i), yFor(v));
-      penDown = true;
-    });
-    ctx.stroke();
-    sessions.forEach((s, i) => {
-      const v = getValue(s);
-      if (v === null) return;
-      ctx.beginPath();
-      ctx.arc(xFor(i), yFor(v), dotRadius, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.globalAlpha = 1;
-  };
-
-  drawSeries((s) => s.overlay, colors.hr, 1.5, 0.8);
-  drawSeries((s) => s.value, colors.accent, 2, 1);
-
-  if (selectedIndex === null || selectedIndex === undefined) return null;
-  const s = sessions[selectedIndex];
-  return { session: s, y: yFor(s.value), barCenterX: xFor(selectedIndex) };
-}
-
-// Dymek z dokładnymi wartościami dla klikniętego/tapniętego punktu —
-// rysowany na płótnie (jak reszta wykresu), nad punktem, przesunięty
-// tak, żeby zmieścić się w szerokości płótna przy skrajnych punktach.
+// Dymek z dokładnymi wartościami dla klikniętego/tapniętego słupka —
+// rysowany na płótnie (jak reszta wykresu), nad słupkiem, przesunięty
+// tak, żeby zmieścić się w szerokości płótna przy skrajnych słupkach.
 function drawChartTooltip(ctx, canvasWidth, selected, style, metric) {
   const surface2 = style.getPropertyValue("--surface-2").trim() || "#232E33";
   const border = style.getPropertyValue("--border").trim() || "#2A353A";
@@ -600,8 +497,8 @@ function drawChartTooltip(ctx, canvasWidth, selected, style, metric) {
   let boxX = selected.barCenterX - boxWidth / 2;
   boxX = Math.max(2, Math.min(canvasWidth - boxWidth - 2, boxX));
   let boxY = selected.y - boxHeight - 8;
-  // Gdy punkt jest blisko górnej krawędzi płótna, dymek nad nim by
-  // się nie zmieścił — pokazujemy go wtedy pod punktem.
+  // Gdy słupek sięga blisko górnej krawędzi płótna, dymek nad nim by
+  // się nie zmieścił — pokazujemy go wtedy pod szczytem słupka.
   if (boxY < 2) boxY = selected.y + 8;
 
   ctx.beginPath();
