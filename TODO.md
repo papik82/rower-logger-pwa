@@ -68,7 +68,7 @@ czyta dane z arkusza, nie łączy się z rowerem).
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
       z historii — karta pod wykresem trendów w Analizach
       (`RECORDS`/`buildRecordsCard` w `analiza.js`)
-- [ ] **Strefy tętna** — podział czasu treningu na strefy (na bazie
+- [x] **Strefy tętna** — podział czasu treningu na strefy (na bazie
       tętna maksymalnego), wizualizacja % czasu w każdej strefie.
       [x] Pole "Tętno maksymalne" w Ustawieniach (`rowerLoggerMaxHr`
       w localStorage, `getMaxHr()` w `nav.js`), wpisywane przez
@@ -82,10 +82,10 @@ czyta dane z arkusza, nie łączy się z rowerem).
       podane (i niższe niż maksymalne), przełącza wyliczenia na
       metodę rezerwy tętna (Karvonena), dokładniejszą niż sam %HRmax.
       Podgląd pokazuje, która metoda jest aktualnie używana
-      - [ ] Wykorzystanie tych granic do podziału **czasu treningu**
-            na strefy i wizualizacji % czasu w każdej — to wciąż
-            wymaga przejścia po próbkach `Trening_Szczegoly` sesji
-            (dopiero to jest oryginalny sens tego punktu w Fazie 1)
+      [x] Podział **czasu treningu** na strefy i % czasu w każdej —
+      karta „Czas w strefach tętna" w Analizach (`buildZonesCard` w
+      `analiza.js`), na próbkach `Trening_Szczegoly`, za wybrany
+      zakres dat, plus słupki skumulowane na trening
 - [ ] Dostępność w zwykłej przeglądarce desktopowej (Chrome/Firefox/
       Safari) — bez wymogu Web Bluetooth, bo to tylko odczyt danych
 

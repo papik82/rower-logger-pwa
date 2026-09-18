@@ -11,6 +11,28 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.8 — 2026-09-18
+Czas w strefach tętna — nowa karta w Analizach, pod wykresem trendów.
+- `analiza.js`: `buildZonesCard()` liczy z próbek `Trening_Szczegoly`
+  (`detail` zwracane już przez `doGet` — bez zmian w Apps Script), ile
+  czasu każdy trening spędził w strefach 1–5 oraz poniżej strefy 1.
+  Granice stref z Ustawień (`computeHrZones`: tętno maksymalne,
+  opcjonalnie spoczynkowe → Karvonen); bez tętna maksymalnego karta
+  pokazuje link do Ustawień
+- Podsumowanie za wybrany zakres dat (ten sam, co wykres trendów —
+  odświeża się razem z nim): czas, % i pasek dla każdej strefy, oraz
+  słupki skumulowane 100% na trening z dymkiem (procent + czas w
+  każdej strefie). Wspólne helpery wykresów (`prepareCanvas`,
+  `barGeometry`, `drawDateLabels`, `drawChartTooltip` z listą linii)
+- `sessionZoneTimes()`: czas próbki = odstęp do następnej, ograniczony
+  do 15 s (luka po rozmowie telefonicznej nie zawyża strefy); próbki
+  bez odczytu pulsu (0/puste) nie liczą się do procentów
+- Treningi z pomiarem pulsu krótszym niż połowa czasu są pomijane,
+  a karta informuje ile (`MIN_HR_COVERAGE`) — inaczej dają mylące
+  procenty; w Twoich danych to 3 z 23 treningów
+- Dymek przycięty do wysokości płótna (nie zachodzi na etykiety dat)
+- `styles.css`: `.zone-row`, `.zone-bar`, `#zonesChart`, `.zones-note`
+
 ## 1.7 — 2026-09-18
 Wszystkie wykresy trendów w Analizach jednolicie słupkowe, na wzór
 dystansu — prędkość, moc, puls i kadencja przestały być liniowe.
