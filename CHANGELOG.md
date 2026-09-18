@@ -11,6 +11,28 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.5 — 2026-09-18
+Wykresy trendów w Analizach — prędkość, moc, puls i kadencja obok
+dystansu, z wyborem zakresu dat.
+- `analiza.js`: karta wykresu ma teraz przyciski metryk (Dystans /
+  Prędkość / Moc / Puls / Kadencja) i zakresu dat (30 dni / 90 dni /
+  Rok / Wszystko + własne pola Od–Do). Dane z `Trening_Podsumowania`
+  (średnia + maksimum na trening), definicje metryk w `METRICS`
+- Dystans zostaje wykresem słupkowym (oś od zera, nakładka „najlepsze
+  15 min"); pozostałe metryki są liniowe (średnia + maksimum) z osią Y
+  dobraną do danych i trzema poziomicami — przy słupkach od zera różnice
+  rzędu 130 vs 140 bpm byłyby niewidoczne. Klik/tap w punkt pokazuje
+  dymek z wartościami, jak wcześniej przy słupkach
+- Zera i puste komórki to „brak danych", nie wartość — sesja bez
+  odczytu pulsu ma średnią 0 i rozciągała oś do zera. Takie sesje są
+  pomijane na wykresie danej metryki
+- Wybór metryki i zakresu przeżywa odświeżenie danych (🔄)
+- Etykiety dat przy skrajnych punktach nie wychodzą poza płótno i nie
+  nachodzą na siebie
+- `drawBarChart` → `drawTrendChart` (`drawBars` / `drawLines`),
+  płótno `#distanceChart` → `#trendChart`; `styles.css`: `.chip`,
+  `.range-dates`, `.range-field`, `.chart-empty`
+
 ## 1.4 — 2026-09-18
 Przywrócony pomarańczowy akcent na igle/piaście loga (`--hr-color`) —
 sam pierścień zostaje biały, ale igła i piasta wyróżniają się kolorem

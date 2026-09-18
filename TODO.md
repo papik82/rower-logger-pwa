@@ -44,12 +44,14 @@ czyta dane z arkusza, nie łączy się z rowerem).
       (tabela `Trening_Podsumowania`, najnowsze na górze, stronicowanie
       po 20) — osobna strona zamiast części modułu analitycznego, ale
       spełnia ten sam cel
-- [ ] **Wykresy trendów w czasie** — prędkość / moc / puls / kadencja
+- [x] **Wykresy trendów w czasie** — prędkość / moc / puls / kadencja
       na przestrzeni tygodni, z możliwością wyboru zakresu dat.
       [x] Pierwszy, podstawowy wykres słupkowy: dystans (km) na kolejne
-      treningi (`analiza.js`, `drawBarChart`, płótno bez zewnętrznej
-      biblioteki, jak `sparkline` w `app.js`) — reszta metryk i wybór
-      zakresu dat to wciąż kolejny krok
+      treningi (`analiza.js`, płótno bez zewnętrznej biblioteki, jak
+      `sparkline` w `app.js`)
+      [x] Pozostałe metryki (prędkość, moc, puls, kadencja — wykres
+      liniowy średnia + maksimum) i wybór zakresu dat (presety + własne
+      Od–Do) — `METRICS`/`drawTrendChart` w `analiza.js`
       [x] "Dystans 15 min" — najlepszy 15-minutowy odcinek treningu
       pod względem dystansu (`bestDistanceInWindow` w `app.js`, ta
       sama logika zduplikowana w `apps-script.gs` do jednorazowego
@@ -61,7 +63,7 @@ czyta dane z arkusza, nie łączy się z rowerem).
       - [x] Interaktywne zaznaczanie słupka na wykresie (klik/tap na
             kolumnie) pokazujące etykietę z dokładną wartością dla
             danej pozycji — wykres dystansu na podstronie Analizy
-            (`drawBarChart`/`drawChartTooltip` w `analiza.js`)
+            (`drawTrendChart`/`drawChartTooltip` w `analiza.js`)
 - [ ] **Rekordy osobiste (PR)** — najdłuższy dystans, najwyższa średnia
       moc, najwyższa maks. prędkość, itd., automatycznie wyłapywane
       z historii
