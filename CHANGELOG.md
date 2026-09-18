@@ -11,6 +11,22 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.3 — 2026-09-18
+Logo poprawione na pełne, gradientowe tło zamiast ciemnego kwadratu na
+środku — dopasowane do stylu sąsiednich ikon na ekranie głównym
+(Android dokładał białe tło, bo poprzednia wersja nie wypełniała
+całego kafelka i nie była oznaczona jako adaptacyjna).
+- `icon-192.png`, `icon-512.png`: pełne, przekątne tło gradientowe
+  (jasny → ciemny teal, ta sama rodzina barw co `--accent`) zamiast
+  ciemnego tła aplikacji (`--bg`) wewnątrz kwadratu; glif (pierścień +
+  igła + piasta) teraz jednolicie biały zamiast dwukolorowy
+  teal/pomarańcz — spójniej z płaskim, jednokolorowym stylem glifów
+  na sąsiednich ikonach; powiększony (mniejszy margines), mieści się
+  w bezpiecznej strefie ~66% dla przycięcia do koła/maski
+- `manifest.webmanifest`: `"purpose": "any maskable"` na obu wpisach
+  ikon — Android traktuje je jako adaptacyjne (własna maska zamiast
+  doklejania białego tła za nieprzezroczystą ikoną)
+
 ## 1.2 — 2026-09-18
 Nowe logo aplikacji — otwarty pierścień (wskaźnik/gauge) z pomarańczową
 igłą i piastą zamiast dwóch koncentrycznych okręgów. Zachowuje ten sam
