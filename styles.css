@@ -285,18 +285,41 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 #analysisContent { display: flex; flex-direction: column; gap: 20px; }
 
 /* Parametr treningu (checkbox przed/w trakcie treningu) */
-#paramsCard { display: flex; align-items: flex-start; gap: 14px; cursor: pointer; }
+/* Rząd: parametr treningu + opór, obok siebie. W obu kaflach opis u góry,
+   element sterujący (checkbox / przyciski − +) na dole. */
+#controlsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#controlsRow > .stat-card { min-width: 0; }
+#paramsCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
 #paramsCard input {
-  width: 20px;
-  height: 20px;
-  margin: 2px 0 0;
+  order: 2;
+  width: 24px;
+  height: 24px;
+  margin: 0;
   flex: 0 0 auto;
   accent-color: var(--accent);
   cursor: pointer;
 }
-#paramsCard .label { margin: 0 0 2px; }
-.param-title { font-size: 14px; font-weight: 500; margin: 0; }
-.param-hint { font-size: 11px; line-height: 1.5; color: var(--text-muted); margin: 4px 0 0; }
+#paramsCard .label { margin: 0 0 4px; }
+.param-title { font-size: 14px; font-weight: 500; line-height: 1.35; margin: 0; }
+#controlsRow #resistanceCard {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+}
+#controlsRow .resistance-buttons { gap: 8px; }
+#controlsRow .resistance-buttons .stepper-btn {
+  flex: 1;
+  width: auto;
+  height: 40px;
+  border-radius: 999px;
+}
 
 /* Wskaźnik czasu w strefach na stronie Trening (na żywo + podsumowanie) */
 #zonesLiveCard .label { margin: 0 0 10px; }

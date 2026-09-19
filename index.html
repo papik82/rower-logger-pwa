@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.15">
+<link rel="stylesheet" href="styles.css?v=1.16">
 </head>
 <body>
 
@@ -72,23 +72,24 @@
     </div>
   </div>
 
-  <label id="paramsCard" class="stat-card">
-    <input type="checkbox" id="paramBest15">
-    <div>
-      <p class="label">Parametr treningu</p>
-      <p class="param-title">Licz dystans 15 min dla tej sesji</p>
-      <p class="param-hint">Najlepszy 15-minutowy odcinek trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.</p>
-    </div>
-  </label>
+  <div id="controlsRow">
+    <label id="paramsCard" class="stat-card" title="Najlepszy 15-minutowy odcinek trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.">
+      <input type="checkbox" id="paramBest15">
+      <div>
+        <p class="label">Parametr treningu</p>
+        <p class="param-title">Licz dystans 15 min dla tej sesji</p>
+      </div>
+    </label>
 
-  <div id="resistanceCard" class="stat-card">
-    <div>
-      <p class="label">Opór na rowerze</p>
-      <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 16</span></p>
-    </div>
-    <div class="resistance-buttons">
-      <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
-      <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
+    <div id="resistanceCard" class="stat-card">
+      <div>
+        <p class="label">Opór na rowerze</p>
+        <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 16</span></p>
+      </div>
+      <div class="resistance-buttons">
+        <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
+        <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
+      </div>
     </div>
   </div>
 
@@ -173,12 +174,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.15"></script>
-<script src="app.js?v=1.15"></script>
+<script src="nav.js?v=1.16"></script>
+<script src="app.js?v=1.16"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.15').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.16').catch(() => {});
   });
 }
 </script>

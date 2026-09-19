@@ -5,7 +5,7 @@
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
 // sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
-const APP_VERSION = "1.15";
+const APP_VERSION = "1.16";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie

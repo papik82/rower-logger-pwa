@@ -11,6 +11,21 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.16 — 2026-09-19
+Układ karty Trening: kafel parametru „Licz dystans 15 min" i kafel
+oporu obok siebie w jednym rzędzie zamiast jeden pod drugim.
+- `index.html`: oba kafle w `#controlsRow` (siatka dwóch kolumn); w
+  obu opis u góry, element sterujący na dole (checkbox / przyciski −
+  i +), równa wysokość
+- `styles.css`: w rzędzie przyciski oporu są rozciągniętymi „pigułkami"
+  (40 px) zamiast okrągłych 52 px — inaczej nie mieszczą się w połowie
+  szerokości; poza tym rzędem `.stepper-btn` bez zmian (np. paginacja)
+- Długa podpowiedź z karty parametru przeniesiona do dymka `title`
+  (na telefonie nie ma hovera — treść i tak jest w CHANGELOG 1.15 i
+  w logu przy zmianie w trakcie treningu); usunięte `.param-hint`
+- Sprawdzone na 375 px i 320 px: kafle 134 px, bez przewijania
+  poziomego; opór i checkbox działają jak wcześniej
+
 ## 1.15 — 2026-09-19
 Parametry treningu — pierwszy: „Licz dystans 15 min dla tej sesji".
 Domyka Fazę 1.
