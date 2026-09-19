@@ -11,6 +11,26 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.12 — 2026-09-19
+Próg minimalnego pomiaru tętna w treningu — treningi z zerowymi
+odczytami pulsu przestają zniekształcać analizy tętna.
+- `ustawienia.html`/`ustawienia.js`: nowe pole „Minimalny pomiar
+  tętna w treningu (%)" (klucz `rowerLoggerMinHrCoverage`, walidacja
+  0–100, puste = 50%, 0 = nie pomijaj żadnych). `nav.js`:
+  `getMinHrCoveragePct()`
+- `analiza.js`: `buildHrCoverage()` liczy z `Trening_Szczegoly` udział
+  próbek z pulsem > 0 w każdym treningu. Trening poniżej progu (albo
+  bez próbek) jest pomijany w analizach pulsu: wykres pulsu (metryka
+  `requiresHr`), czas w strefach i rekord „Najwyższy maks. puls"
+  (`needsHr`). Dystans, moc, prędkość, kadencja i pozostałe rekordy
+  bez zmian
+- Pod wykresem pulsu i pod strefami notatka ile treningów pominięto i
+  dlaczego (`coverageReason`), z odesłaniem do Ustawień. Wcześniej
+  strefy miały ten próg na stałe (50%, `MIN_HR_COVERAGE`) i tylko one
+- W arkuszu pokrycie pulsu jest „zero-jedynkowe" (treningi mają ok.
+  100% albo poniżej ~21%), więc każdy próg 25–95% daje dziś ten sam
+  wynik: 3 z 24 treningów pominięte
+
 ## 1.11 — 2026-09-19
 Wskaźnik czasu w strefach tętna podczas treningu (strona Trening).
 Wariant „pasek czasu" wybrany spośród trzech propozycji (pasek /

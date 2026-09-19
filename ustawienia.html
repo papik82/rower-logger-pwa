@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.11">
+<link rel="stylesheet" href="styles.css?v=1.12">
 </head>
 <body>
 
@@ -58,13 +58,19 @@
     <div id="hrZonesList"></div>
   </div>
 
+  <div class="stat-card settings-field">
+    <label for="minHrCoverage">Minimalny pomiar tętna w treningu (%)</label>
+    <input type="number" id="minHrCoverage" placeholder="50" min="0" max="100" inputmode="numeric">
+    <p class="settings-hint">Treningi, w których tętno zmierzono w mniejszej części czasu, są pomijane w analizach pulsu: na wykresie pulsu, w czasie w strefach i w rekordzie maks. pulsu. Dystans, moc i reszta zostają. Puste pole = 50%, 0 = nie pomijaj żadnych.</p>
+  </div>
+
   <p id="settingsStatus" class="settings-status"></p>
 
   <button class="hr-connect-btn" id="saveSettingsBtn">Zapisz ustawienia</button>
   <button class="secondary" id="forceUpdateBtn">Wymuś aktualizację aplikacji</button>
 </main>
 
-<script src="nav.js?v=1.11"></script>
-<script src="ustawienia.js?v=1.11"></script>
+<script src="nav.js?v=1.12"></script>
+<script src="ustawienia.js?v=1.12"></script>
 </body>
 </html>

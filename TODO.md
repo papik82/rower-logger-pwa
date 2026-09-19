@@ -93,12 +93,16 @@ czyta dane z arkusza, nie łączy się z rowerem).
       w Firefoksie i Safari — tylko przegląd użytych API
 
 ### Do ustalenia po drodze
-- [ ] Mechanizm eliminujący z analiz tętna (wykresy, strefy, średnie,
-      rekordy) treningi ze zbyt licznymi zerowymi odczytami pulsu
-      (np. utrata kontaktu paska). Do ustalenia: próg (% zerowych
-      próbek), czy konfigurowalny w Ustawieniach, czy tylko
-      wykluczać z analiz tętna, a zostawiać w pozostałych (dystans,
-      moc)
+- [x] Mechanizm eliminujący z analiz tętna (wykresy, strefy, rekordy)
+      treningi ze zbyt licznymi zerowymi odczytami pulsu: próg w
+      Ustawieniach (domyślnie 50% próbek z pulsem), pomijane tylko w
+      analizach tętna, dystans/moc/reszta zostają. `getMinHrCoveragePct`
+      w `nav.js`, `buildHrCoverage` w `analiza.js`. Otwarte: średni puls
+      w Wynikach i podsumowaniu wciąż liczy zera (patrz niżej)
+- [ ] Średni puls w podsumowaniu treningu i tabeli Wyników uwzględnia
+      zerowe odczyty (zaniża średnią) — do rozważenia liczenie tylko z
+      odczytów > 0 (dotyczy nowych treningów, starsze trzeba by
+      przeliczyć skryptem Apps Script)
 - [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
       "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
       15 min" ma być liczony tylko dla treningów z zaznaczonym tym

@@ -3,6 +3,7 @@
 const urlInput = document.getElementById("appsScriptUrl");
 const maxHrInput = document.getElementById("maxHr");
 const restingHrInput = document.getElementById("restingHr");
+const minCoverageInput = document.getElementById("minHrCoverage");
 const statusEl = document.getElementById("settingsStatus");
 
 urlInput.value = getAppsScriptUrl();
@@ -10,6 +11,8 @@ const currentMaxHr = getMaxHr();
 maxHrInput.value = currentMaxHr === null ? "" : currentMaxHr;
 const currentRestingHr = getRestingHr();
 restingHrInput.value = currentRestingHr === null ? "" : currentRestingHr;
+const storedMinCoverage = localStorage.getItem("rowerLoggerMinHrCoverage");
+minCoverageInput.value = storedMinCoverage === null ? "" : storedMinCoverage;
 
 function showStatus(message, isError) {
   statusEl.textContent = message;
@@ -95,6 +98,17 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
     restingHrValue = Math.round(restingHrValue);
   }
 
+  const minCoverageRaw = minCoverageInput.value.trim();
+  let minCoverageValue = null;
+  if (minCoverageRaw !== "") {
+    minCoverageValue = Number(minCoverageRaw);
+    if (!Number.isFinite(minCoverageValue) || minCoverageValue < 0 || minCoverageValue > 100) {
+      showStatus("Minimalny pomiar tętna musi być liczbą od 0 do 100 — nie zapisano.", true);
+      return;
+    }
+    minCoverageValue = Math.round(minCoverageValue);
+  }
+
   localStorage.setItem("rowerLoggerAppsScriptUrl", urlInput.value.trim());
   // Adres mógł się zmienić — bez tego Wyniki/Analizy pokazałyby jeszcze
   // przez chwilę dane z poprzedniego arkusza z cache'a.
@@ -112,6 +126,13 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   } else {
     localStorage.setItem("rowerLoggerRestingHr", String(restingHrValue));
     restingHrInput.value = restingHrValue;
+  }
+
+  if (minCoverageValue === null) {
+    localStorage.removeItem("rowerLoggerMinHrCoverage");
+  } else {
+    localStorage.setItem("rowerLoggerMinHrCoverage", String(minCoverageValue));
+    minCoverageInput.value = minCoverageValue;
   }
 
   renderHrZones();

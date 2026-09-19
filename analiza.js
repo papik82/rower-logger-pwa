@@ -23,7 +23,7 @@ const METRICS = [
     overlay: { col: "Maks. moc (W)", scale: 1, name: "Maks. moc", legend: "maksymalna" },
   },
   {
-    id: "hr", label: "Puls", unit: "bpm", decimals: 1,
+    id: "hr", label: "Puls", unit: "bpm", decimals: 1, requiresHr: true,
     main: { col: "Śr. puls (bpm)", scale: 1, name: "Śr. puls", legend: "średni" },
     overlay: { col: "Maks. puls (bpm)", scale: 1, name: "Maks. puls", legend: "maksymalny" },
   },
@@ -95,6 +95,38 @@ function toNumber(raw) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+// Udział próbek z odczytem pulsu (> 0) w każdym treningu, wg ID sesji.
+// Trening bez próbek w `Trening_Szczegoly` nie ma wpisu w mapie.
+function buildHrCoverage(detail) {
+  const counts = new Map();
+  detail.forEach((r) => {
+    const id = r["ID sesji"];
+    if (!id) return;
+    const c = counts.get(id) || { total: 0, hr: 0 };
+    c.total += 1;
+    if (Number(r["Puls (bpm)"]) > 0) c.hr += 1;
+    counts.set(id, c);
+  });
+  const coverage = new Map();
+  counts.forEach((c, id) => coverage.set(id, c.hr / c.total));
+  return coverage;
+}
+
+// Powód pominięcia treningu w analizach pulsu, do notatek pod wykresami.
+// Próg 0% pomija już tylko treningi bez żadnego odczytu pulsu.
+function coverageReason(pct) {
+  return pct > 0
+    ? `tętno zmierzone w mniej niż ${pct}% treningu (próg zmienisz w Ustawieniach)`
+    : "brak odczytów pulsu";
+}
+
+function trainingsWord(n) {
+  const last = n % 10;
+  const lastTwo = n % 100;
+  if (n === 1) return "trening";
+  return last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? "treningi" : "treningów";
+}
+
 // Arkusz zapisuje "Data" jako pełny znacznik UTC — do porównań z polami
 // zakresu dat bierzemy dzień w strefie arkusza (Europe/Warsaw), tak samo
 // jak w Wynikach ("sv-SE" daje format RRRR-MM-DD).
@@ -113,21 +145,30 @@ function daysAgo(days) {
 // Treningi z niepustą wartością wybranej metryki, w podanym zakresie
 // dat, chronologicznie (najstarszy po lewej — naturalny kierunek osi
 // czasu). Starsze sesje bez np. mocy są po prostu pomijane.
-function buildSessions(rows, metric, from, to) {
-  return rows
+function buildSessions(rows, metric, from, to, hrOk) {
+  let excluded = 0;
+  const sessions = rows
     .map((row) => {
       const main = toNumber(row[metric.main.col]);
       const overlay = toNumber(row[metric.overlay.col]);
       return {
+        id: row["ID sesji"],
         date: row["Data"],
         day: warsawDay(row["Data"]),
         value: main === null ? null : main * metric.main.scale,
         overlay: overlay === null ? null : overlay * metric.overlay.scale,
       };
     })
-    .filter((s) => s.day && s.value !== null)
+    .filter((s) => s.day)
     .filter((s) => (!from || s.day >= from) && (!to || s.day <= to))
+    .filter((s) => {
+      if (!metric.requiresHr || hrOk(s.id)) return true;
+      excluded += 1;
+      return false;
+    })
+    .filter((s) => s.value !== null)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+  return { sessions, excluded };
 }
 
 function el(tag, className, text) {
@@ -142,6 +183,13 @@ function renderAnalysis(container, rows, detail) {
     container.textContent = "Brak zapisanych treningów.";
     return;
   }
+
+  const minCoveragePct = getMinHrCoveragePct();
+  const hrCoverage = buildHrCoverage(detail);
+  const hrOk = (id) => {
+    const c = hrCoverage.get(id);
+    return c !== undefined && c * 100 >= minCoveragePct;
+  };
 
   const card = el("div", "stat-card");
 
@@ -205,7 +253,8 @@ function renderAnalysis(container, rows, detail) {
   canvas.id = "trendChart";
   canvas.setAttribute("role", "img");
   const emptyMsg = el("p", "chart-empty");
-  chartWrap.append(canvas, emptyMsg);
+  const chartNote = el("p", "zones-note");
+  chartWrap.append(canvas, emptyMsg, chartNote);
   card.appendChild(chartWrap);
 
   // Jeden listener na płótnie czyta bieżący stan z `activeChart*` —
@@ -238,7 +287,12 @@ function renderAnalysis(container, rows, detail) {
 
     zones.update();
 
-    const sessions = buildSessions(rows, metric, analysisState.from, analysisState.to);
+    const { sessions, excluded } = buildSessions(rows, metric, analysisState.from, analysisState.to, hrOk);
+    chartNote.style.display = excluded > 0 ? "" : "none";
+    chartNote.textContent =
+      excluded > 0
+        ? `Pominięto ${excluded} ${trainingsWord(excluded)}: ${coverageReason(minCoveragePct)}.`
+        : "";
     activeChartCanvas = canvas;
     activeChartSessions = sessions;
     activeChartSelectedIndex = null;
@@ -259,10 +313,10 @@ function renderAnalysis(container, rows, detail) {
     drawTrendChart(canvas, sessions, null, metric);
   }
 
-  const zones = buildZonesCard(rows, detail);
+  const zones = buildZonesCard(rows, detail, hrOk);
   container.className = "";
   container.replaceChildren(card, zones.card);
-  const recordsCard = buildRecordsCard(rows);
+  const recordsCard = buildRecordsCard(rows, hrOk);
   if (recordsCard) container.appendChild(recordsCard);
   update();
 }
@@ -308,7 +362,7 @@ const RECORDS = [
   { label: "Najwyższa śr. moc", unit: "W", get: (r) => scaled(r["Śr. moc (W)"], 1), fmt: (v) => v.toFixed(1) },
   { label: "Najwyższa maks. moc", unit: "W", get: (r) => scaled(r["Maks. moc (W)"], 1), fmt: (v) => v.toFixed(0) },
   { label: "Najwyższa maks. kadencja", unit: "obr/min", get: (r) => scaled(r["Maks. kadencja (obr/min)"], 1), fmt: (v) => v.toFixed(0) },
-  { label: "Najwyższy maks. puls", unit: "bpm", get: (r) => scaled(r["Maks. puls (bpm)"], 1), fmt: (v) => v.toFixed(0) },
+  { label: "Najwyższy maks. puls", unit: "bpm", needsHr: true, get: (r) => scaled(r["Maks. puls (bpm)"], 1), fmt: (v) => v.toFixed(0) },
   { label: "Najwięcej kalorii", unit: "kcal", get: (r) => scaled(r["Kalorie łącznie (kcal)"], 1), fmt: (v) => v.toFixed(0) },
 ];
 
@@ -321,7 +375,7 @@ function scaled(raw, scale) {
 // historii i data pierwszego jej osiągnięcia (przy remisie wygrywa
 // wcześniejszy trening). Rekord ustanowiony w ostatnim treningu jest
 // wyróżniony.
-function buildRecordsCard(rows) {
+function buildRecordsCard(rows, hrOk) {
   const chronological = rows
     .filter((r) => r["Data"])
     .slice()
@@ -333,6 +387,7 @@ function buildRecordsCard(rows) {
   RECORDS.forEach((record) => {
     let best = null;
     chronological.forEach((row) => {
+      if (record.needsHr && !hrOk(row["ID sesji"])) return;
       const value = record.get(row);
       if (value !== null && (best === null || value > best.value)) {
         best = { value, date: row["Data"] };
@@ -546,9 +601,6 @@ function drawChartTooltip(ctx, canvasWidth, selected, colors, lines) {
 // Odstęp między próbkami to normalnie 5 s; limit luki (HR_ZONE_MAX_GAP_S)
 // jest wspólny z podglądem na żywo, patrz nav.js.
 const DEFAULT_SAMPLE_S = 5;
-// Trening z pomiarem tętna krótszym niż połowa czasu (np. tylko gdy
-// trzymamy uchwyty roweru) dałby mylące procenty — pomijamy go.
-const MIN_HR_COVERAGE = 0.5;
 
 let redrawZonesChart = null;
 
@@ -597,7 +649,7 @@ function formatPercent(fraction) {
 // (`analysisState`), więc odświeża się razem z nim przez `update()`.
 // Granice stref pochodzą z Ustawień (tętno maksymalne, opcjonalnie
 // spoczynkowe → Karvonen), tak samo jak podgląd stref tam.
-function buildZonesCard(rows, detail) {
+function buildZonesCard(rows, detail, hrOk) {
   const card = el("div", "stat-card zones-card");
   card.appendChild(el("p", "label", "Czas w strefach tętna"));
   const body = el("div");
@@ -626,7 +678,7 @@ function buildZonesCard(rows, detail) {
         day: warsawDay(row["Data"]),
         secs: times ? times.secs : null,
         measured: times ? times.measured : 0,
-        usable: !!times && times.measured > 0 && times.measured / times.total >= MIN_HR_COVERAGE,
+        usable: !!times && times.measured > 0 && hrOk(row["ID sesji"]),
       };
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -705,7 +757,7 @@ function buildZonesCard(rows, detail) {
     note.style.display = skipped > 0 || used.length > 0 ? "" : "none";
     note.textContent =
       (skipped > 0
-        ? `Pominięto ${skipped} z ${inRange.length} treningów w zakresie: brak pomiaru tętna lub pomiar krótszy niż połowa treningu. `
+        ? `Pominięto ${skipped} z ${inRange.length} treningów w zakresie: ${coverageReason(getMinHrCoveragePct())}. `
         : "") + (used.length > 0 ? "Kliknij słupek, żeby zobaczyć podział dla treningu." : "");
   }
 

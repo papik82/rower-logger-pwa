@@ -5,7 +5,7 @@
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
 // sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
-const APP_VERSION = "1.11";
+const APP_VERSION = "1.12";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -92,6 +92,20 @@ function getMaxHr() {
 function getRestingHr() {
   const stored = Number(localStorage.getItem("rowerLoggerRestingHr"));
   return stored > 0 ? stored : null;
+}
+
+// Minimalny udział próbek z odczytem pulsu w treningu (w %), poniżej
+// którego trening jest pomijany w analizach tętna (wykres pulsu, czas w
+// strefach, rekord maks. pulsu). Rower oddaje 0, gdy nie trzymamy
+// uchwytów i nie ma paska, a utrata kontaktu paska daje serie zer —
+// takie treningi zaniżają średnie i zniekształcają strefy. Puste pole
+// w Ustawieniach = wartość domyślna; 0 = nie pomijaj żadnych.
+const DEFAULT_MIN_HR_COVERAGE_PCT = 50;
+function getMinHrCoveragePct() {
+  const raw = localStorage.getItem("rowerLoggerMinHrCoverage");
+  if (raw === null || raw === "") return DEFAULT_MIN_HR_COVERAGE_PCT;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : DEFAULT_MIN_HR_COVERAGE_PCT;
 }
 
 // Standardowy 5-strefowy podział intensywności. Wartości `low`/`high`
