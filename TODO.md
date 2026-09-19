@@ -97,12 +97,11 @@ czyta dane z arkusza, nie łączy się z rowerem).
       treningi ze zbyt licznymi zerowymi odczytami pulsu: próg w
       Ustawieniach (domyślnie 50% próbek z pulsem), pomijane tylko w
       analizach tętna, dystans/moc/reszta zostają. `getMinHrCoveragePct`
-      w `nav.js`, `buildHrCoverage` w `analiza.js`. Otwarte: średni puls
-      w Wynikach i podsumowaniu wciąż liczy zera (patrz niżej)
-- [ ] Średni puls w podsumowaniu treningu i tabeli Wyników uwzględnia
-      zerowe odczyty (zaniża średnią) — do rozważenia liczenie tylko z
-      odczytów > 0 (dotyczy nowych treningów, starsze trzeba by
-      przeliczyć skryptem Apps Script)
+      w `nav.js`, `buildHrCoverage` w `analiza.js`
+- [x] Średni puls bez zerowych odczytów: nowe treningi liczone z
+      odczytów > 0 (`buildSummary` w `app.js`), archiwum poprawia
+      `previewAvgHrBackfill`/`backfillAvgHr` w `apps-script.gs` —
+      wymaga jednorazowego uruchomienia w edytorze Apps Script
 - [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
       "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
       15 min" ma być liczony tylko dla treningów z zaznaczonym tym

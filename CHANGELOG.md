@@ -11,6 +11,30 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.13 — 2026-09-19
+Średni puls bez zerowych odczytów — nowe treningi liczone poprawnie,
+archiwum do poprawienia jednorazowym skryptem.
+- `app.js`: `buildSummary()` liczy średni i maks. puls tylko z odczytów
+  > 0 (rower oddaje 0 bez uchwytów i paska, a to nie wartość). Trening
+  bez żadnego odczytu zapisuje pustą komórkę zamiast 0, a podsumowanie
+  pokazuje „— / — bpm". Krzywa średniego pulsu na wykresie na żywo też
+  pomija zera (`hrRunningSum`)
+- `apps-script.gs`: `previewAvgHrBackfill()` (podgląd, nic nie
+  zapisuje) i `backfillAvgHr()` (zapis) poprawiają kolumnę „Śr. puls
+  (bpm)" w `Trening_Podsumowania` dla starych treningów. Zmieniane są
+  tylko treningi z zerowymi odczytami w oknie jazdy; stare wartości
+  trafiają do dziennika wykonania. Czysta funkcja `avgHrFromSamples_`
+  odtwarza logikę przycinania postoju z `app.js`
+- Sprawdzone na Twoich danych, z atrapą arkusza zbudowaną z prawdziwych
+  próbek: 16 z 24 treningów daje wartość identyczną co do 0,1 bpm z
+  zapisaną (potwierdza zgodność logiki), do zmiany 7 wierszy, m.in.
+  18,1 → 94,9 i 23,9 → 112,8; trening bez odczytów 0 → puste. Sesja z
+  załataną luką (2026-09-11) i sesja z aplikacji desktopowej bez dziur
+  zostają nietknięte
+- **Do wykonania ręcznie:** wkleić zaktualizowany `apps-script.gs` do
+  edytora Apps Script, uruchomić `previewAvgHrBackfill`, obejrzeć
+  dziennik, potem `backfillAvgHr`. Bez nowego wdrożenia
+
 ## 1.12 — 2026-09-19
 Próg minimalnego pomiaru tętna w treningu — treningi z zerowymi
 odczytami pulsu przestają zniekształcać analizy tętna.

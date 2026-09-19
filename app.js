@@ -536,7 +536,7 @@ function startSampling() {
     sparklineAvgData.push(speedRunningCount ? speedRunningSum / speedRunningCount : 0);
     if (sparklineAvgData.length > 60) sparklineAvgData.shift();
 
-    if (sample.heart_rate_bpm !== undefined && sample.heart_rate_bpm !== null) {
+    if (sample.heart_rate_bpm > 0) {
       hrRunningSum += sample.heart_rate_bpm;
       hrRunningCount += 1;
     }
@@ -650,7 +650,9 @@ function buildSummary() {
   const cadences = col("cadence_rpm");
   const powers = col("power_w");
   const resistances = col("resistance_level");
-  const hrs = col("heart_rate_bpm");
+  // Puls 0 to brak odczytu (rower oddaje 0 bez uchwytów i paska), nie
+  // wartość — wliczony do średniej zaniżałby ją.
+  const hrs = col("heart_rate_bpm").filter((v) => v > 0);
   const distances = col("distance_m");
   const energies = col("energy_total_kcal");
   const elapsedVals = col("elapsed_s");
@@ -815,7 +817,7 @@ function showSummary(summary) {
   document.getElementById("sumPower").textContent =
     `${summary.avg_power ?? "—"} / ${summary.max_power ?? "—"} W`;
   document.getElementById("sumHr").textContent =
-    `${summary.avg_hr ?? "—"} / ${summary.max_hr ?? "—"} bpm`;
+    `${summary.avg_hr || "—"} / ${summary.max_hr || "—"} bpm`;
 
   const gapWarning = document.getElementById("summaryGapWarning");
   if (dataGaps.length > 0) {

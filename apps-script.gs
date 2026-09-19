@@ -185,6 +185,129 @@ function bestDistanceInWindow(samples, windowSeconds) {
 }
 
 /* ============================================================
+   Średni puls — usunięcie zerowych odczytów z archiwum
+   ============================================================
+   Rower oddaje puls 0, gdy nie trzymamy uchwytów i nie ma paska, a
+   utrata kontaktu paska daje serie zer. Dawniej PWA wliczała te zera
+   do średniego pulsu w Trening_Podsumowania, więc średnia była
+   zaniżona (nawet do kilkudziesięciu bpm). Od wersji 1.13 nowe
+   treningi liczą średnią tylko z odczytów > 0 — ta funkcja poprawia
+   historię sprzed tej zmiany.
+
+   Uruchamiasz RĘCZNIE z tego edytora (bez nowego wdrożenia, jak przy
+   "backfillDistance15Min"). Dwa kroki:
+   1. "previewAvgHrBackfill" — tylko wypisuje w dzienniku wykonania,
+      które wiersze i jak się zmienią (stara → nowa wartość). Niczego
+      nie zapisuje.
+   2. "backfillAvgHr" — to samo, ale zapisuje nowe wartości w kolumnie
+      "Śr. puls (bpm)". Stare wartości zostają w dzienniku, gdyby trzeba
+      było coś cofnąć.
+   Zmienia wyłącznie kolumnę "Śr. puls (bpm)" i tylko w treningach, w
+   których w oknie jazdy są zerowe odczyty pulsu; maksimum pulsu zera
+   nie zaniżały. Trening bez ani jednego odczytu > 0 dostaje pustą
+   komórkę zamiast 0. Idempotentne — po zapisie kolejny podgląd pokaże
+   0 wierszy do zmiany, bo zapisane wartości zgadzają się już z próbkami.
+   ============================================================ */
+const IDLE_SPEED_THRESHOLD_KMH = 0.5; // patrz CONFIG w app.js
+
+// Średni puls z odczytów > 0 w oknie aktywnej jazdy (bez postoju na
+// brzegach) — ta sama logika co buildSummary()/trimIdleEdges() w app.js.
+// Dwa różne środowiska, więc kod jest zduplikowany zamiast współdzielony.
+// Zwraca { avg, holes }: `holes` to liczba próbek w oknie bez odczytu
+// pulsu (0/puste) — tylko treningi z dziurami są poprawiane.
+function avgHrFromSamples_(samples) {
+  const sorted = samples.slice().sort((a, b) => a.elapsed_s - b.elapsed_s);
+  let first = -1;
+  let last = -1;
+  sorted.forEach((s, i) => {
+    if ((s.speed_kmh || 0) > IDLE_SPEED_THRESHOLD_KMH) {
+      if (first === -1) first = i;
+      last = i;
+    }
+  });
+  const active = first === -1 ? sorted : sorted.slice(first, last + 1);
+  const hrs = active.map((s) => s.heart_rate_bpm).filter((v) => v > 0);
+  return {
+    avg: hrs.length === 0 ? "" : Math.round((hrs.reduce((a, b) => a + b, 0) / hrs.length) * 10) / 10,
+    holes: active.length - hrs.length,
+  };
+}
+
+function computeAvgHrUpdates_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const detailSheet = ss.getSheetByName(DETAIL_SHEET_NAME);
+  const summarySheet = ss.getSheetByName(SUMMARY_SHEET_NAME);
+  if (!detailSheet || !summarySheet) {
+    throw new Error("Nie znaleziono jednej z zakładek.");
+  }
+
+  const detailValues = detailSheet.getDataRange().getValues();
+  const detailHeaders = detailValues[0];
+  const sessionIdx = detailHeaders.indexOf("ID sesji");
+  const elapsedIdx = detailHeaders.indexOf("Czas od startu (s)");
+  const speedIdx = detailHeaders.indexOf("Prędkość (km/h)");
+  const hrIdx = detailHeaders.indexOf("Puls (bpm)");
+  if (sessionIdx === -1 || elapsedIdx === -1 || speedIdx === -1 || hrIdx === -1) {
+    throw new Error("Brak oczekiwanych kolumn w " + DETAIL_SHEET_NAME);
+  }
+
+  const bySession = {};
+  for (let i = 1; i < detailValues.length; i++) {
+    const row = detailValues[i];
+    const id = row[sessionIdx];
+    if (!id) continue;
+    if (!bySession[id]) bySession[id] = [];
+    bySession[id].push({
+      elapsed_s: Number(row[elapsedIdx]),
+      speed_kmh: Number(row[speedIdx]),
+      heart_rate_bpm: Number(row[hrIdx]),
+    });
+  }
+
+  const summaryValues = summarySheet.getDataRange().getValues();
+  const summaryHeaders = summaryValues[0];
+  const idIdx = summaryHeaders.indexOf("ID sesji");
+  const avgIdx = summaryHeaders.indexOf("Śr. puls (bpm)");
+  if (idIdx === -1 || avgIdx === -1) {
+    throw new Error("Brak kolumny ID sesji lub Śr. puls (bpm) w " + SUMMARY_SHEET_NAME);
+  }
+
+  const updates = [];
+  for (let i = 1; i < summaryValues.length; i++) {
+    const id = summaryValues[i][idIdx];
+    const samples = bySession[id];
+    if (!samples) continue;
+    const result = avgHrFromSamples_(samples);
+    // Trening bez zerowych odczytów zostaje nietknięty — jego średnia
+    // jest dobra, a ewentualne drobne różnice wynikają z dawnego
+    // sposobu liczenia (np. sesja z aplikacji desktopowej albo załatana
+    // luka), nie z dziur w pulsie.
+    if (result.holes === 0) continue;
+    const next = result.avg;
+    const old = summaryValues[i][avgIdx];
+    const same = next === "" ? old === "" : Number(old) === next;
+    if (!same) updates.push({ row: i + 1, col: avgIdx + 1, id: id, old: old, next: next });
+  }
+  return updates;
+}
+
+function previewAvgHrBackfill() {
+  const updates = computeAvgHrUpdates_();
+  updates.forEach((u) => Logger.log(u.id + ": " + u.old + " → " + (u.next === "" ? "(puste)" : u.next)));
+  Logger.log("PODGLĄD (nic nie zapisano): do zmiany " + updates.length + " wierszy w " + SUMMARY_SHEET_NAME + ".");
+}
+
+function backfillAvgHr() {
+  const summarySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUMMARY_SHEET_NAME);
+  const updates = computeAvgHrUpdates_();
+  updates.forEach((u) => {
+    summarySheet.getRange(u.row, u.col).setValue(u.next);
+    Logger.log(u.id + ": " + u.old + " → " + (u.next === "" ? "(puste)" : u.next));
+  });
+  Logger.log("Zaktualizowano " + updates.length + " wierszy w " + SUMMARY_SHEET_NAME + ".");
+}
+
+/* ============================================================
    Uzupełnienie luki w treningu 2026-09-11 (sesja 20260911115447.)
    ============================================================
    Podczas tego treningu przez ~91 sekund pod koniec (odebrany
