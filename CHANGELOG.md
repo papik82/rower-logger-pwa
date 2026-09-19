@@ -11,6 +11,30 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.11 — 2026-09-19
+Wskaźnik czasu w strefach tętna podczas treningu (strona Trening).
+Wariant „pasek czasu" wybrany spośród trzech propozycji (pasek /
+zegar z igłą / korektor).
+- `index.html`, `app.js`: karta „Czas w strefach tętna" pod wykresami
+  pulsu — kolorowa plakietka bieżącej strefy z tętnem (albo „Brak
+  odczytu pulsu"), poziomy pasek proporcji czasu i sześć kafelków
+  z czasem (<Z1, Z1–Z5), bieżąca strefa obwiedziona. Odświeżana przy
+  każdej zmianie tętna (`refreshHrDisplay`) i co tik próbkowania.
+  `createZonesView()`, `initLiveZones()`, `accumulateZoneTime()`
+- Czas próbki = rzeczywisty odstęp od poprzedniego tiku, ograniczony
+  do `HR_ZONE_MAX_GAP_S` (15 s); próbki bez odczytu pulsu się nie
+  liczą. Licznik zerowany przy Start; po Stop karta zostaje z
+  końcowym rozkładem
+- „Podsumowanie treningu" dostaje ten sam widok jako końcowy rozkład
+  czasu w strefach (bez plakietki bieżącej strefy)
+- Bez tętna maksymalnego w Ustawieniach karta pokazuje link do
+  Ustawień; granice stref jak w podglądzie w Ustawieniach (Karvonen,
+  gdy podano tętno spoczynkowe)
+- Nic nowego nie trafia do arkusza — próbki z pulsem już tam są
+- `nav.js`: wspólne `hrZoneIndex()`, `formatMinSec()`, `ZONE_BELOW_*`,
+  `HR_ZONE_MAX_GAP_S`, używane też w Analizach (usunięte duplikaty z
+  `analiza.js`, wynik bez zmian)
+
 ## 1.10 — 2026-09-18
 Ikonka odświeżania w nagłówku Wyników i Analiz dopasowana do reszty
 interfejsu — zamiast kolorowego emoji 🔄 (renderowanego jako niebieski

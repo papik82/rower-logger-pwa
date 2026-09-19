@@ -112,6 +112,9 @@ czyta dane z arkusza, nie łączy się z rowerem).
       osobne wykresy, jeden pod drugim
 - [x] Na każdym z nich dodać krzywą średniej (prędkości / tętna)
       cieńszą/jaśniejszą niż krzywa wartości bieżącej
+- [x] Wskaźnik czasu w strefach tętna w trakcie treningu (pasek czasu
+      + plakietka bieżącej strefy + czasy w Z1–Z5) i końcowy rozkład
+      w podsumowaniu — `createZonesView`/`initLiveZones` w `app.js`
 
 ### Drobne usprawnienia UI (zbiorcze)
 - [x] Nowe, czytelniejsze, bardziej piktogramowe ikonki w górnym

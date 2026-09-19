@@ -543,17 +543,12 @@ function drawChartTooltip(ctx, canvasWidth, selected, colors, lines) {
    Czas w strefach tętna
    ============================================================ */
 
-// Odstęp między próbkami to normalnie 5 s. Dłuższa luka (np. aplikacja
-// w tle przy rozmowie telefonicznej) liczy się tylko do tego limitu,
-// żeby jedna próbka nie przypisała strefie kilkudziesięciu sekund,
-// których nie zmierzono.
+// Odstęp między próbkami to normalnie 5 s; limit luki (HR_ZONE_MAX_GAP_S)
+// jest wspólny z podglądem na żywo, patrz nav.js.
 const DEFAULT_SAMPLE_S = 5;
-const MAX_SAMPLE_GAP_S = 15;
 // Trening z pomiarem tętna krótszym niż połowa czasu (np. tylko gdy
 // trzymamy uchwyty roweru) dałby mylące procenty — pomijamy go.
 const MIN_HR_COVERAGE = 0.5;
-const ZONE_BELOW_COLOR = "#3A464B";
-const ZONE_BELOW_LABEL = "Poniżej strefy 1";
 
 let redrawZonesChart = null;
 
@@ -582,30 +577,14 @@ function sessionZoneTimes(samples, zones) {
   let total = 0;
   points.forEach((p, i) => {
     const next = points[i + 1];
-    const dt = next ? Math.min(next.t - p.t, MAX_SAMPLE_GAP_S) : DEFAULT_SAMPLE_S;
+    const dt = next ? Math.min(next.t - p.t, HR_ZONE_MAX_GAP_S) : DEFAULT_SAMPLE_S;
     if (!(dt > 0)) return;
     total += dt;
     if (!(p.hr > 0)) return;
     measured += dt;
-    let index;
-    if (p.hr < zones[0].from) {
-      index = 0;
-    } else {
-      const zoneIdx = zones.findIndex((z) => p.hr <= z.to);
-      index = zoneIdx === -1 ? 5 : zoneIdx + 1;
-    }
-    secs[index] += dt;
+    secs[hrZoneIndex(zones, p.hr)] += dt;
   });
   return { secs, measured, total };
-}
-
-function formatMinSec(totalSeconds) {
-  const secs = Math.round(totalSeconds);
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  const pad = (n) => String(n).padStart(2, "0");
-  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
 function formatPercent(fraction) {

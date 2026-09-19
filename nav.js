@@ -5,7 +5,7 @@
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
 // sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
-const APP_VERSION = "1.10";
+const APP_VERSION = "1.11";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -125,6 +125,31 @@ function computeHrZones(maxHr, restingHr) {
     const to = i === HR_ZONE_DEFS.length - 1 ? maxHr : Math.round(base + reserve * zone.high);
     return { ...zone, number: i + 1, from, to };
   });
+}
+
+// Numer przedziału dla danego tętna: 0 = poniżej strefy 1, 1–5 = strefy
+// (tętno powyżej maksimum trafia do strefy 5). Wspólne dla podglądu na
+// żywo (Trening) i statystyk z arkusza (Analizy).
+function hrZoneIndex(zones, hr) {
+  if (hr < zones[0].from) return 0;
+  const i = zones.findIndex((z) => hr <= z.to);
+  return i === -1 ? 5 : i + 1;
+}
+
+const ZONE_BELOW_COLOR = "#3A464B";
+const ZONE_BELOW_LABEL = "Poniżej strefy 1";
+// Odstęp między próbkami to normalnie 5 s. Dłuższa luka (np. aplikacja
+// w tle przy rozmowie telefonicznej) liczy się tylko do tego limitu,
+// żeby nie przypisać strefie czasu, którego nie zmierzono.
+const HR_ZONE_MAX_GAP_S = 15;
+
+function formatMinSec(totalSeconds) {
+  const secs = Math.round(totalSeconds);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
 function markActiveNavTile() {

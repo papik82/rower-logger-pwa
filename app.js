@@ -197,6 +197,10 @@ let hrRunningCount = 0;
 let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 10) || 5;
 let dataGaps = [];
 let lastTickWallClock = null;
+let zoneSecs = [0, 0, 0, 0, 0, 0];
+let liveZones = null;
+let zonesLiveView = null;
+let zonesSummaryView = null;
 
 /* ============================================================
    Wake Lock — nie pozwól zgasnąć ekranowi podczas nagrywania
@@ -346,6 +350,127 @@ function getEffectiveHeartRate() {
 
 function refreshHrDisplay() {
   document.getElementById("statHr").textContent = fmtLive(getEffectiveHeartRate(), 0);
+  renderLiveZones();
+}
+
+/* ============================================================
+   Czas w strefach tętna — wskaźnik na żywo (karta pod wykresami)
+   i końcowy rozkład w podsumowaniu. Granice stref z Ustawień, ta
+   sama logika przypisania co w Analizach (nav.js). Czas próbki to
+   rzeczywisty odstęp od poprzedniego tiku, ograniczony do
+   HR_ZONE_MAX_GAP_S; próbki bez odczytu pulsu się nie liczą.
+   ============================================================ */
+function createZonesView(container, zones, showCurrent) {
+  container.textContent = "";
+  const segColors = [ZONE_BELOW_COLOR, ...zones.map((z) => z.color)];
+  const segNames = ["<Z1", ...zones.map((z) => `Z${z.number}`)];
+
+  const root = document.createElement("div");
+  root.className = "zones-live";
+
+  let badge = null;
+  let bpmValue = null;
+  if (showCurrent) {
+    const head = document.createElement("div");
+    head.className = "zones-live-head";
+    badge = document.createElement("span");
+    badge.className = "zone-badge";
+    const bpm = document.createElement("span");
+    bpm.className = "zones-live-bpm";
+    bpmValue = document.createElement("strong");
+    bpm.append(bpmValue, "bpm");
+    head.append(badge, bpm);
+    root.appendChild(head);
+  }
+
+  const bar = document.createElement("div");
+  bar.className = "zones-live-bar";
+  const axis = document.createElement("div");
+  axis.className = "zones-live-axis";
+  const axisStart = document.createElement("span");
+  axisStart.textContent = "0:00";
+  const axisEnd = document.createElement("span");
+  axis.append(axisStart, axisEnd);
+
+  const chipsWrap = document.createElement("div");
+  chipsWrap.className = "zones-live-chips";
+  const chips = segColors.map((color, i) => {
+    const chip = document.createElement("div");
+    chip.className = "zone-chip";
+    chip.style.setProperty("--zone-color", color);
+    const dot = document.createElement("div");
+    dot.className = "zone-chip-dot";
+    dot.style.background = color;
+    const name = document.createElement("div");
+    name.className = "zone-chip-name";
+    name.textContent = segNames[i];
+    const time = document.createElement("div");
+    time.className = "zone-chip-time";
+    chip.append(dot, name, time);
+    chipsWrap.appendChild(chip);
+    return { chip, time };
+  });
+
+  root.append(bar, axis, chipsWrap);
+  container.appendChild(root);
+
+  return {
+    update(secs, currentIndex, bpm) {
+      if (showCurrent) {
+        if (currentIndex === null) {
+          badge.textContent = "Brak odczytu pulsu";
+          badge.style.background = "";
+          badge.style.color = "";
+          bpmValue.textContent = "—";
+        } else {
+          badge.textContent = currentIndex === 0 ? ZONE_BELOW_LABEL : `Strefa ${currentIndex}`;
+          badge.style.background = segColors[currentIndex];
+          badge.style.color = currentIndex === 0 ? "#F2F5F4" : "#12181B";
+          bpmValue.textContent = Math.round(bpm);
+        }
+      }
+
+      const total = secs.reduce((a, b) => a + b, 0);
+      bar.replaceChildren();
+      secs.forEach((v, i) => {
+        if (v <= 0) return;
+        const seg = document.createElement("div");
+        seg.style.flex = String(v);
+        seg.style.background = segColors[i];
+        bar.appendChild(seg);
+      });
+      axisEnd.textContent = formatMinSec(total);
+      chips.forEach(({ chip, time }, i) => {
+        time.textContent = formatMinSec(secs[i]);
+        chip.classList.toggle("current", showCurrent && currentIndex === i);
+      });
+    },
+  };
+}
+
+function initLiveZones() {
+  const body = document.getElementById("zonesLiveBody");
+  const maxHr = getMaxHr();
+  if (!maxHr) {
+    body.innerHTML =
+      '<p class="zones-note">Ustaw tętno maksymalne w <a href="ustawienia.html">Ustawieniach</a>, żeby zobaczyć czas w strefach.</p>';
+    return;
+  }
+  liveZones = computeHrZones(maxHr, getRestingHr());
+  zonesLiveView = createZonesView(body, liveZones, true);
+  zonesSummaryView = createZonesView(document.getElementById("summaryZonesBody"), liveZones, false);
+  renderLiveZones();
+}
+
+function renderLiveZones() {
+  if (!zonesLiveView) return;
+  const hr = getEffectiveHeartRate();
+  zonesLiveView.update(zoneSecs, hr > 0 ? hrZoneIndex(liveZones, hr) : null, hr);
+}
+
+function accumulateZoneTime(hr, seconds) {
+  if (!liveZones || !(hr > 0) || !(seconds > 0)) return;
+  zoneSecs[hrZoneIndex(liveZones, hr)] += seconds;
 }
 
 /* ============================================================
@@ -381,6 +506,7 @@ function startSampling() {
       heart_rate_bpm: getEffectiveHeartRate(),
     };
     history.push(sample);
+    accumulateZoneTime(sample.heart_rate_bpm, Math.min(sinceLastTick, HR_ZONE_MAX_GAP_S));
 
     const row = [
       sessionId,
@@ -418,6 +544,7 @@ function startSampling() {
     if (hrSparklineAvgData.length > 60) hrSparklineAvgData.shift();
 
     drawSparkline();
+    renderLiveZones();
 
     log(
       `[${new Date().toLocaleTimeString("pl-PL")}] ` +
@@ -591,6 +718,8 @@ async function startRecording() {
     hrRunningSum = 0;
     hrRunningCount = 0;
     dataGaps = [];
+    zoneSecs = [0, 0, 0, 0, 0, 0];
+    renderLiveZones();
     hideSummary();
 
     await acquireWakeLock();
@@ -698,6 +827,14 @@ function showSummary(summary) {
     gapWarning.classList.add("visible");
   } else {
     gapWarning.classList.remove("visible");
+  }
+
+  const zonesBlock = document.getElementById("summaryZones");
+  if (zonesSummaryView && zoneSecs.some((v) => v > 0)) {
+    zonesSummaryView.update(zoneSecs, null, null);
+    zonesBlock.style.display = "";
+  } else {
+    zonesBlock.style.display = "none";
   }
 
   document.getElementById("summaryCard").classList.add("visible");
@@ -828,6 +965,7 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 });
 
 document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
+initLiveZones();
 checkConfig();
 updateResistanceDisplay();
 retryOfflineQueue();
