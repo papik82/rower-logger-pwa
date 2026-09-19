@@ -6,6 +6,12 @@
  * Treningów", a następnie wdróż jako aplikację internetową (Web App).
  * Pełna instrukcja krok po kroku: patrz DEPLOY.md.
  *
+ * Aktualizując kod, ZASTĄP zawartość istniejącego pliku w projekcie
+ * (Ctrl+A, wklej) — nie dodawaj drugiego pliku obok. Wszystkie pliki
+ * projektu Apps Script dzielą jeden zakres, więc dwie kopie tego kodu
+ * kończą się błędem "Identifier 'DETAIL_SHEET_NAME' has already been
+ * declared".
+ *
  * Zaleta tego podejścia: PWA nigdy nie ma dostępu do żadnego klucza czy
  * hasła do Twojego konta Google — cała autoryzacja dzieje się po stronie
  * Apps Script, uruchamianego z Twoimi uprawnieniami.
