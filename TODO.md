@@ -5,7 +5,7 @@ w kolejności zależności — każda kolejna korzysta z fundamentu poprzedniej.
 
 ---
 
-## 🚧 FAZA 1 — Moduł analityczny (w trakcie planowania)
+## ✅ FAZA 1 — Moduł analityczny (ukończona)
 
 **Cel:** osobny widok/strona w aplikacji (dostępna też w zwykłej
 przeglądarce desktopowej, bez wymogu Web Bluetooth — analiza tylko
@@ -102,11 +102,12 @@ czyta dane z arkusza, nie łączy się z rowerem).
       odczytów > 0 (`buildSummary` w `app.js`), archiwum poprawia
       `previewAvgHrBackfill`/`backfillAvgHr` w `apps-script.gs` —
       wymaga jednorazowego uruchomienia w edytorze Apps Script
-- [ ] Wybór "parametrów" per trening (np. checkbox przed/po treningu:
-      "licz dystans 15 min dla tej sesji"). Po wdrożeniu, "Dystans
-      15 min" ma być liczony tylko dla treningów z zaznaczonym tym
-      parametrem — na razie liczony automatycznie dla każdego treningu
-      dłuższego niż 15 minut, bez możliwości wyłączenia
+- [x] Wybór "parametrów" per trening — checkbox "Licz dystans 15 min
+      dla tej sesji" na stronie Trening (domyślnie zaznaczony, wybór
+      pamiętany, zmienny do Stop); bez zaznaczenia komórka w arkuszu
+      zostaje pusta. `isBest15Enabled`/`initTrainingParams` w `app.js`.
+      Zmiana po Stop niezrealizowana (wymagałaby edycji zapisanego
+      wiersza)
 
 ---
 

@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.14">
+<link rel="stylesheet" href="styles.css?v=1.15">
 </head>
 <body>
 
@@ -71,6 +71,15 @@
       </div>
     </div>
   </div>
+
+  <label id="paramsCard" class="stat-card">
+    <input type="checkbox" id="paramBest15">
+    <div>
+      <p class="label">Parametr treningu</p>
+      <p class="param-title">Licz dystans 15 min dla tej sesji</p>
+      <p class="param-hint">Najlepszy 15-minutowy odcinek trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.</p>
+    </div>
+  </label>
 
   <div id="resistanceCard" class="stat-card">
     <div>
@@ -151,6 +160,7 @@
       <div class="summary-row"><p class="k">Kadencja śr. / maks.</p><p class="v" id="sumCadence">—</p></div>
       <div class="summary-row"><p class="k">Moc śr. / maks.</p><p class="v" id="sumPower">—</p></div>
       <div class="summary-row"><p class="k">Puls śr. / maks.</p><p class="v" id="sumHr">—</p></div>
+      <div class="summary-row" id="sumBest15Row" style="display: none;"><p class="k">Najlepsze 15 min</p><p class="v" id="sumBest15">—</p></div>
     </div>
     <div id="summaryZones" style="display: none;">
       <p class="summary-zones-title">Czas w strefach tętna</p>
@@ -163,12 +173,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.14"></script>
-<script src="app.js?v=1.14"></script>
+<script src="nav.js?v=1.15"></script>
+<script src="app.js?v=1.15"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.14').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.15').catch(() => {});
   });
 }
 </script>

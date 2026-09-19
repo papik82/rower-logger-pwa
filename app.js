@@ -642,6 +642,27 @@ function formatDuration(totalSeconds) {
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
+/* ============================================================
+   Parametry treningu — na razie jeden: "Licz dystans 15 min dla tej
+   sesji". Wybór pamiętany między treningami (domyślnie włączony, jak
+   dotąd), można go zmienić przed startem i w trakcie — do kliknięcia
+   Stop, bo podsumowanie idzie do arkusza od razu po zakończeniu.
+   ============================================================ */
+const PARAM_BEST15_KEY = "rowerLoggerParamBest15";
+
+function isBest15Enabled() {
+  return document.getElementById("paramBest15").checked;
+}
+
+function initTrainingParams() {
+  const box = document.getElementById("paramBest15");
+  box.checked = localStorage.getItem(PARAM_BEST15_KEY) !== "0";
+  box.addEventListener("change", () => {
+    localStorage.setItem(PARAM_BEST15_KEY, box.checked ? "1" : "0");
+    if (isRecording) log(`  Dystans 15 min dla tej sesji: ${box.checked ? "liczony" : "pomijany"}.`);
+  });
+}
+
 function buildSummary() {
   const active = trimIdleEdges(history);
   const col = (key) => active.map((h) => h[key]).filter((v) => v !== undefined);
@@ -660,7 +681,11 @@ function buildSummary() {
   const windowSamples = active
     .filter((h) => h.elapsed_s !== undefined && h.distance_m !== undefined)
     .map((h) => ({ elapsed_s: h.elapsed_s, distance_m: h.distance_m }));
-  const distance15min = bestDistanceInWindow(windowSamples, CONFIG.BEST_EFFORT_WINDOW_S);
+  // Parametr treningu: bez zaznaczenia "Licz dystans 15 min" komórka
+  // w arkuszu zostaje pusta (Wyniki i Analizy to już obsługują).
+  const distance15min = isBest15Enabled()
+    ? bestDistanceInWindow(windowSamples, CONFIG.BEST_EFFORT_WINDOW_S)
+    : null;
 
   const durationS = elapsedVals.length
     ? Math.max(...elapsedVals) - Math.min(...elapsedVals)
@@ -816,6 +841,14 @@ function showSummary(summary) {
     `${summary.avg_cadence ?? "—"} / ${summary.max_cadence ?? "—"} obr/min`;
   document.getElementById("sumPower").textContent =
     `${summary.avg_power ?? "—"} / ${summary.max_power ?? "—"} W`;
+  const best15Row = document.getElementById("sumBest15Row");
+  if (summary.distance_15min_m !== "") {
+    document.getElementById("sumBest15").textContent = `${summary.distance_15min_m} m`;
+    best15Row.style.display = "";
+  } else {
+    best15Row.style.display = "none";
+  }
+
   document.getElementById("sumHr").textContent =
     `${summary.avg_hr || "—"} / ${summary.max_hr || "—"} bpm`;
 
@@ -968,6 +1001,7 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 
 document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
 initLiveZones();
+initTrainingParams();
 checkConfig();
 updateResistanceDisplay();
 retryOfflineQueue();

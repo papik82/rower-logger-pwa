@@ -11,6 +11,26 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.15 — 2026-09-19
+Parametry treningu — pierwszy: „Licz dystans 15 min dla tej sesji".
+Domyka Fazę 1.
+- `index.html`, `app.js`: karta z checkboxem nad oporem. Bez
+  zaznaczenia `buildSummary()` zapisuje pustą komórkę „Dystans 15 min
+  (m)" (`isBest15Enabled()`); Wyniki i Analizy już obsługują puste
+  wartości, więc nic więcej nie trzeba było zmieniać. Schemat wiersza
+  (17 kolumn) bez zmian — **bez zmian w arkuszu i w Apps Script**
+- Wybór pamiętany w `localStorage` (`rowerLoggerParamBest15`),
+  domyślnie zaznaczony, żeby zachować dotychczasowe zachowanie (liczone
+  dla każdego treningu ≥ 15 min). Można go zmienić przed startem i w
+  trakcie — do kliknięcia Stop, bo podsumowanie idzie do arkusza od razu
+  po zakończeniu (zmiana w trakcie zostawia wpis w logu)
+- Podsumowanie treningu pokazuje wiersz „Najlepsze 15 min", gdy wartość
+  została policzona
+- Archiwum bez zmian: dotychczasowe treningi zachowują wartość
+  policzoną automatycznie (nie ma jak retroaktywnie wybrać parametru)
+- Nie zrobione: zmiana parametru *po* Stop (wymagałaby aktualizacji
+  już zapisanego wiersza w arkuszu)
+
 ## 1.14 — 2026-09-19
 Doprecyzowana nazwa i opis progu z wersji 1.12 — poprzednia nazwa
 („Minimalny pomiar tętna w treningu") sugerowała, że próg dotyczy zer,
