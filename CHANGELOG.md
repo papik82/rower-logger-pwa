@@ -11,6 +11,13 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.17 — 2026-09-19
+Krótszy opis parametru na karcie Trening: „Sesja 15 min" zamiast „Licz
+dystans 15 min dla tej sesji" (mieści się w jednej linii w połowie
+szerokości). Pełne wyjaśnienie zostaje w dymku `title` kafla; wpis w
+logu przy zmianie w trakcie treningu bez zmian.
+- `index.html`: `.param-title` i `title` kafla `#paramsCard`
+
 ## 1.16 — 2026-09-19
 Układ karty Trening: kafel parametru „Licz dystans 15 min" i kafel
 oporu obok siebie w jednym rzędzie zamiast jeden pod drugim.

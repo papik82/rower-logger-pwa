@@ -102,8 +102,8 @@ czyta dane z arkusza, nie łączy się z rowerem).
       odczytów > 0 (`buildSummary` w `app.js`), archiwum poprawia
       `previewAvgHrBackfill`/`backfillAvgHr` w `apps-script.gs` —
       wymaga jednorazowego uruchomienia w edytorze Apps Script
-- [x] Wybór "parametrów" per trening — checkbox "Licz dystans 15 min
-      dla tej sesji" na stronie Trening (domyślnie zaznaczony, wybór
+- [x] Wybór "parametrów" per trening — checkbox "Sesja 15 min"
+      (licz dystans 15 min dla tej sesji) na stronie Trening (domyślnie zaznaczony, wybór
       pamiętany, zmienny do Stop); bez zaznaczenia komórka w arkuszu
       zostaje pusta. `isBest15Enabled`/`initTrainingParams` w `app.js`.
       Zmiana po Stop niezrealizowana (wymagałaby edycji zapisanego

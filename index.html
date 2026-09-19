@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.16">
+<link rel="stylesheet" href="styles.css?v=1.17">
 </head>
 <body>
 
@@ -73,11 +73,11 @@
   </div>
 
   <div id="controlsRow">
-    <label id="paramsCard" class="stat-card" title="Najlepszy 15-minutowy odcinek trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.">
+    <label id="paramsCard" class="stat-card" title="Sesja 15 min: liczy dystans najlepszego 15-minutowego odcinka, który trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.">
       <input type="checkbox" id="paramBest15">
       <div>
         <p class="label">Parametr treningu</p>
-        <p class="param-title">Licz dystans 15 min dla tej sesji</p>
+        <p class="param-title">Sesja 15 min</p>
       </div>
     </label>
 
@@ -174,12 +174,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.16"></script>
-<script src="app.js?v=1.16"></script>
+<script src="nav.js?v=1.17"></script>
+<script src="app.js?v=1.17"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.16').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.17').catch(() => {});
   });
 }
 </script>
