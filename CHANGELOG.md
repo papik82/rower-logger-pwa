@@ -11,6 +11,19 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.14 — 2026-09-19
+Doprecyzowana nazwa i opis progu z wersji 1.12 — poprzednia nazwa
+(„Minimalny pomiar tętna w treningu") sugerowała, że próg dotyczy zer,
+a dotyczy udziału odczytów: wyższa liczba = bardziej restrykcyjny próg.
+- `ustawienia.html`: pole „Minimalny udział odczytów pulsu (%)" z
+  opisem i przykładem („25 = pomiń treningi, w których ponad 75%
+  odczytów to zera"). Komunikat walidacji w `ustawienia.js` z nową
+  nazwą
+- `analiza.js`: notatka pod wykresem pulsu i strefami mówi teraz
+  „odczyty pulsu w mniej niż X% próbek treningu" (`coverageReason`)
+- Logika bez zmian: trening zostaje, gdy udział próbek z pulsem > 0
+  wynosi co najmniej X%
+
 ## 1.13 — 2026-09-19
 Średni puls bez zerowych odczytów — nowe treningi liczone poprawnie,
 archiwum do poprawienia jednorazowym skryptem.

@@ -103,7 +103,7 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   if (minCoverageRaw !== "") {
     minCoverageValue = Number(minCoverageRaw);
     if (!Number.isFinite(minCoverageValue) || minCoverageValue < 0 || minCoverageValue > 100) {
-      showStatus("Minimalny pomiar tętna musi być liczbą od 0 do 100 — nie zapisano.", true);
+      showStatus("Minimalny udział odczytów pulsu musi być liczbą od 0 do 100 — nie zapisano.", true);
       return;
     }
     minCoverageValue = Math.round(minCoverageValue);

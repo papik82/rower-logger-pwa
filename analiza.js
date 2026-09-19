@@ -116,7 +116,7 @@ function buildHrCoverage(detail) {
 // Próg 0% pomija już tylko treningi bez żadnego odczytu pulsu.
 function coverageReason(pct) {
   return pct > 0
-    ? `tętno zmierzone w mniej niż ${pct}% treningu (próg zmienisz w Ustawieniach)`
+    ? `odczyty pulsu w mniej niż ${pct}% próbek treningu (próg zmienisz w Ustawieniach)`
     : "brak odczytów pulsu";
 }
 
