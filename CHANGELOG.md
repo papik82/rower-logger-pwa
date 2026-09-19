@@ -11,6 +11,34 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.19 — 2026-09-19
+Zwarty układ strony Trening — całość w trakcie treningu mieści się na
+jednym ekranie telefonu (812 px zamiast 1336 px), przed startem 913 px.
+Zmierzone na 375 px.
+- **Pasek treningu** (`body.recording`, ustawiane w `setRecordButton`):
+  po Start duży okrągły przycisk i karty połączeń zwijają się do belki
+  Stop (52 px) i chipów „Rower ●" / „Puls ●" (kropka `.status-dot`,
+  klasa `connected` na kartach). Chip pulsu ma przycisk „Połącz", gdy
+  pasek jest rozłączony, żeby dało się go podłączyć w trakcie. 204 → 52 px
+- **Kafle live w 3 kolumnach**: Czas, Prędkość, Kadencja / Dystans i
+  szerszy Puls z plakietką bieżącej strefy (`#zoneBadge`). Czas w
+  formacie `m:ss` (`formatMinSec`) zamiast `00:15:40`, kadencja bez
+  miejsc po przecinku — inaczej nie mieszczą się w 1/3 szerokości.
+  275 → 140 px. Na 320 px jednostki zawijają się pod wartość
+- **Trendy prędkości i pulsu obok siebie** (`#trendsRow`), tytuły
+  „Prędkość · 5 min" / „Puls · 5 min", bez legendy (wyjaśnienie w
+  `title`). 196 + odstęp → 87 px
+- **Strefy kompaktowo**: bez nagłówka karty i osi 0:00, wiersz meta z
+  tytułem i sumą czasu, kafelki Z1–Z5 w dwóch liniach (kropka + nazwa /
+  czas). Plakietka strefy przeniesiona do kafla Puls, więc nagłówek z
+  bpm zniknął. `createZonesView(container, zones, opts)` przyjmuje teraz
+  `{ title, badge }`. 193 → 102 px
+- **Dziennik zwinięty** do jednej linii z ostatnim wpisem
+  (`#logLast`), dotknięcie rozwija pełną treść (`#logFull`,
+  `initLogToggle`). 64 → 36 px
+- **Odstępy między kartami 20 → 12 px** tylko na stronie Trening
+  (`body.page-training`), pozostałe strony bez zmian
+
 ## 1.18 — 2026-09-19
 Niższe kafle „Sesja 15 min" i „Opór" (137 → 118 px na telefonie).
 - `#paramsCard`: układ poziomy — tytuł po lewej, checkbox po prawej,

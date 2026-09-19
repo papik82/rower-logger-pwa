@@ -326,9 +326,8 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 }
 
 /* Wskaźnik czasu w strefach na stronie Trening (na żywo + podsumowanie) */
-#zonesLiveCard .label { margin: 0 0 10px; }
-.summary-zones-title { font-size: 12px; color: var(--text-muted); margin: 16px 0 10px; }
-.zones-live-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+#zonesLiveCard { padding: 10px 12px; }
+.summary-zones-title { font-size: 12px; color: var(--text-muted); margin: 16px 0 8px; }
 .zone-badge {
   font-size: 12px;
   font-weight: 500;
@@ -338,37 +337,91 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   color: var(--text-muted);
   white-space: nowrap;
 }
-.zones-live-bpm { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.zones-live-bpm strong {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--text);
-  margin-right: 3px;
+.zones-live-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
   font-variant-numeric: tabular-nums;
 }
 .zones-live-bar {
   display: flex;
   gap: 2px;
-  height: 14px;
-  border-radius: 7px;
+  height: 12px;
+  border-radius: 6px;
   overflow: hidden;
   background: var(--surface-2);
 }
 .zones-live-bar > div { min-width: 2px; }
-.zones-live-axis {
+.zones-live-chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 8px; }
+.zone-chip { text-align: center; border-radius: 8px; padding: 3px 0; border: 1.5px solid transparent; min-width: 0; }
+.zone-chip.current { border-color: var(--zone-color); }
+.zone-chip-name {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
 }
-.zones-live-chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
-.zone-chip { text-align: center; border-radius: 8px; padding: 5px 0; border: 1.5px solid transparent; min-width: 0; }
-.zone-chip.current { border-color: var(--zone-color); }
-.zone-chip-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 3px; }
-.zone-chip-name { font-size: 11px; color: var(--text-muted); }
+.zone-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--zone-color); flex: 0 0 auto; }
 .zone-chip-time { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* ===== Zwarty układ strony Trening — całość ma mieścić się na ~1 ekranie ===== */
+body.page-training main { gap: 12px; }
+
+/* kafle live: Czas, Prędkość, Kadencja / Dystans + szerszy Puls z plakietką strefy */
+#liveStats { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+#liveStats > .stat-card { grid-column: span 2; padding: 10px 12px; min-width: 0; }
+#liveStats > .stat-wide { grid-column: span 4; }
+#liveStats .label { font-size: 11px; margin: 0 0 2px; }
+#liveStats .value { font-size: 20px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 4px; }
+#liveStats .unit { font-size: 11px; margin-left: 0; }
+#liveStats .value .zone-badge { margin-left: auto; align-self: center; }
+
+/* trendy prędkości i pulsu obok siebie */
+#trendsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#trendsRow > .stat-card { padding: 10px 12px; min-width: 0; }
+#trendsRow .sparkline-header .label { font-size: 11px; }
+#trendsRow .sparkline-canvas { height: 44px; }
+
+/* w trakcie treningu: belka Stop + statusy urządzeń zamiast dużego przycisku */
+.status-dot {
+  display: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  margin-left: 5px;
+}
+.connect-card.connected .status-dot { background: var(--accent); }
+body.recording #topRow { grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+body.recording #recordBtnWrap { padding: 0; }
+body.recording #recordBtn {
+  width: 100%;
+  height: 52px;
+  border-radius: 26px;
+  flex-direction: row;
+  gap: 8px;
+  font-size: 16px;
+}
+body.recording #recordBtn .icon { font-size: 16px; }
+body.recording .pulse-ring { display: none; }
+body.recording #connectRow { flex-direction: row; gap: 6px; }
+body.recording .connect-card {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+}
+body.recording .connect-card .label { margin: 0; display: flex; align-items: center; }
+body.recording .connect-card .value { display: none; }
+body.recording .status-dot { display: inline-block; }
+body.recording .connect-card .hr-connect-btn { display: none; }
+body.recording #hrCard:not(.connected) .hr-connect-btn { display: block; width: auto; padding: 5px 10px; font-size: 12px; }
 
 .zones-card .label { margin: 0 0 10px; }
 .zone-row { padding: 7px 0; border-top: 0.5px solid var(--border); }
@@ -402,15 +455,15 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 8px 12px;
   font-size: 12px;
   color: var(--text-muted);
-  max-height: 140px;
-  overflow-y: auto;
   font-family: 'Roboto Mono', monospace;
-  line-height: 1.6;
-  white-space: pre-wrap;
+  line-height: 1.5;
+  cursor: pointer;
 }
+#logLast { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#logFull { max-height: 160px; overflow-y: auto; white-space: pre-wrap; }
 
 #summaryCard {
   background: var(--surface);

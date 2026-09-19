@@ -286,6 +286,7 @@ async function disconnectBike() {
 }
 
 function updateBikeUI() {
+  document.getElementById("bikeCard").classList.toggle("connected", bikeConnected);
   document.getElementById("bikeStatus").textContent = bikeConnected ? "Połączony" : "Niepołączony";
   document.getElementById("bikeConnectBtn").textContent = bikeConnected ? "Rozłącz" : "Połącz";
 }
@@ -339,6 +340,7 @@ function disconnectHrStrap() {
 }
 
 function updateHrStrapUI() {
+  document.getElementById("hrCard").classList.toggle("connected", hrConnected);
   document.getElementById("hrStrapStatus").textContent = hrConnected ? "Połączony" : "Niepołączony";
   document.getElementById("hrConnectBtn").textContent = hrConnected ? "Rozłącz" : "Połącz";
 }
@@ -360,37 +362,24 @@ function refreshHrDisplay() {
    rzeczywisty odstęp od poprzedniego tiku, ograniczony do
    HR_ZONE_MAX_GAP_S; próbki bez odczytu pulsu się nie liczą.
    ============================================================ */
-function createZonesView(container, zones, showCurrent) {
+function createZonesView(container, zones, opts) {
   container.textContent = "";
+  const badge = opts.badge || null;
   const segColors = [ZONE_BELOW_COLOR, ...zones.map((z) => z.color)];
   const segNames = ["<Z1", ...zones.map((z) => `Z${z.number}`)];
 
   const root = document.createElement("div");
   root.className = "zones-live";
 
-  let badge = null;
-  let bpmValue = null;
-  if (showCurrent) {
-    const head = document.createElement("div");
-    head.className = "zones-live-head";
-    badge = document.createElement("span");
-    badge.className = "zone-badge";
-    const bpm = document.createElement("span");
-    bpm.className = "zones-live-bpm";
-    bpmValue = document.createElement("strong");
-    bpm.append(bpmValue, "bpm");
-    head.append(badge, bpm);
-    root.appendChild(head);
-  }
+  const meta = document.createElement("div");
+  meta.className = "zones-live-meta";
+  const metaTitle = document.createElement("span");
+  metaTitle.textContent = opts.title || "";
+  const metaTotal = document.createElement("span");
+  meta.append(metaTitle, metaTotal);
 
   const bar = document.createElement("div");
   bar.className = "zones-live-bar";
-  const axis = document.createElement("div");
-  axis.className = "zones-live-axis";
-  const axisStart = document.createElement("span");
-  axisStart.textContent = "0:00";
-  const axisEnd = document.createElement("span");
-  axis.append(axisStart, axisEnd);
 
   const chipsWrap = document.createElement("div");
   chipsWrap.className = "zones-live-chips";
@@ -398,35 +387,31 @@ function createZonesView(container, zones, showCurrent) {
     const chip = document.createElement("div");
     chip.className = "zone-chip";
     chip.style.setProperty("--zone-color", color);
-    const dot = document.createElement("div");
-    dot.className = "zone-chip-dot";
-    dot.style.background = color;
     const name = document.createElement("div");
     name.className = "zone-chip-name";
-    name.textContent = segNames[i];
+    const dot = document.createElement("span");
+    dot.className = "zone-chip-dot";
+    name.append(dot, segNames[i]);
     const time = document.createElement("div");
     time.className = "zone-chip-time";
-    chip.append(dot, name, time);
+    chip.append(name, time);
     chipsWrap.appendChild(chip);
     return { chip, time };
   });
 
-  root.append(bar, axis, chipsWrap);
+  root.append(meta, bar, chipsWrap);
   container.appendChild(root);
 
   return {
-    update(secs, currentIndex, bpm) {
-      if (showCurrent) {
+    update(secs, currentIndex) {
+      if (badge) {
         if (currentIndex === null) {
-          badge.textContent = "Brak odczytu pulsu";
-          badge.style.background = "";
-          badge.style.color = "";
-          bpmValue.textContent = "—";
+          badge.hidden = true;
         } else {
+          badge.hidden = false;
           badge.textContent = currentIndex === 0 ? ZONE_BELOW_LABEL : `Strefa ${currentIndex}`;
           badge.style.background = segColors[currentIndex];
           badge.style.color = currentIndex === 0 ? "#F2F5F4" : "#12181B";
-          bpmValue.textContent = Math.round(bpm);
         }
       }
 
@@ -439,10 +424,10 @@ function createZonesView(container, zones, showCurrent) {
         seg.style.background = segColors[i];
         bar.appendChild(seg);
       });
-      axisEnd.textContent = formatMinSec(total);
+      metaTotal.textContent = formatMinSec(total);
       chips.forEach(({ chip, time }, i) => {
         time.textContent = formatMinSec(secs[i]);
-        chip.classList.toggle("current", showCurrent && currentIndex === i);
+        chip.classList.toggle("current", currentIndex === i);
       });
     },
   };
@@ -457,15 +442,18 @@ function initLiveZones() {
     return;
   }
   liveZones = computeHrZones(maxHr, getRestingHr());
-  zonesLiveView = createZonesView(body, liveZones, true);
-  zonesSummaryView = createZonesView(document.getElementById("summaryZonesBody"), liveZones, false);
+  zonesLiveView = createZonesView(body, liveZones, {
+    title: "Czas w strefach tętna",
+    badge: document.getElementById("zoneBadge"),
+  });
+  zonesSummaryView = createZonesView(document.getElementById("summaryZonesBody"), liveZones, { title: "Łącznie" });
   renderLiveZones();
 }
 
 function renderLiveZones() {
   if (!zonesLiveView) return;
   const hr = getEffectiveHeartRate();
-  zonesLiveView.update(zoneSecs, hr > 0 ? hrZoneIndex(liveZones, hr) : null, hr);
+  zonesLiveView.update(zoneSecs, hr > 0 ? hrZoneIndex(liveZones, hr) : null);
 }
 
 function accumulateZoneTime(hr, seconds) {
@@ -575,7 +563,7 @@ function stopElapsedTimer() {
 
 function updateElapsedDisplay() {
   const secs = Math.floor((Date.now() - startTime.getTime()) / 1000);
-  document.getElementById("statElapsed").textContent = formatDuration(secs);
+  document.getElementById("statElapsed").textContent = formatMinSec(secs);
 }
 
 /* ============================================================
@@ -785,10 +773,33 @@ async function stopRecording() {
 /* ============================================================
    UI
    ============================================================ */
+// Dziennik jest domyślnie zwinięty do jednej linii (ostatni wpis);
+// dotknięcie rozwija pełną treść.
+let logText = "Gotowy do połączenia z rowerem.";
+let logLast = logText;
+
 function log(msg) {
+  logText += "\n" + msg;
+  const lines = msg.split("\n").filter((l) => l.trim() !== "");
+  if (lines.length) logLast = lines[lines.length - 1].trim();
+  document.getElementById("logLast").textContent = logLast;
+  const full = document.getElementById("logFull");
+  full.textContent = logText;
+  if (!full.hidden) full.scrollTop = full.scrollHeight;
+}
+
+function initLogToggle() {
   const box = document.getElementById("logBox");
-  box.textContent += "\n" + msg;
-  box.scrollTop = box.scrollHeight;
+  const last = document.getElementById("logLast");
+  const full = document.getElementById("logFull");
+  full.textContent = logText;
+  box.addEventListener("click", () => {
+    if (window.getSelection().toString()) return; // zaznaczanie tekstu nie zwija
+    const expanded = full.hidden;
+    full.hidden = !expanded;
+    last.hidden = expanded;
+    if (expanded) full.scrollTop = full.scrollHeight;
+  });
 }
 
 function setStatus(text, cls) {
@@ -802,6 +813,8 @@ function setRecordButton(recording) {
   const label = document.getElementById("recordBtnLabel");
   const wrap = document.getElementById("recordBtnWrap");
   btn.classList.toggle("recording", recording);
+  // W trakcie treningu górny rząd zwija się do belki Stop + statusów.
+  document.body.classList.toggle("recording", recording);
   label.textContent = recording ? "Stop" : "Start";
   btn.querySelector(".icon").textContent = recording ? "\u25A0" : "\u25CF";
 
@@ -823,7 +836,7 @@ function fmtLive(value, decimals) {
 
 function updateLiveStats(sample) {
   document.getElementById("statSpeed").textContent = fmtLive(sample.speed_kmh, 1);
-  document.getElementById("statCadence").textContent = fmtLive(sample.cadence_rpm, 1);
+  document.getElementById("statCadence").textContent = fmtLive(sample.cadence_rpm, 0);
   document.getElementById("statDistance").textContent =
     fmtLive(sample.distance_m !== undefined && sample.distance_m !== null ? sample.distance_m / 1000 : undefined, 2);
 }
@@ -1002,6 +1015,7 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
 initLiveZones();
 initTrainingParams();
+initLogToggle();
 checkConfig();
 updateResistanceDisplay();
 retryOfflineQueue();

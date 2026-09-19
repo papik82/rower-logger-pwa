@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.18">
+<link rel="stylesheet" href="styles.css?v=1.19">
 </head>
-<body>
+<body class="page-training">
 
 <header>
   <h1>Rower Logger</h1>
@@ -56,7 +56,7 @@
     <div id="connectRow">
       <div id="bikeCard" class="stat-card connect-card">
         <div>
-          <p class="label">Rower</p>
+          <p class="label">Rower<span class="status-dot"></span></p>
           <p class="value" id="bikeStatus">Niepołączony</p>
         </div>
         <button id="bikeConnectBtn" class="hr-connect-btn">Połącz</button>
@@ -64,7 +64,7 @@
 
       <div id="hrCard" class="stat-card connect-card">
         <div>
-          <p class="label">Puls</p>
+          <p class="label">Puls<span class="status-dot"></span></p>
           <p class="value" id="hrStrapStatus">Niepołączony</p>
         </div>
         <button id="hrConnectBtn" class="hr-connect-btn">Połącz</button>
@@ -110,19 +110,16 @@
       <p class="label">Dystans</p>
       <p class="value"><span id="statDistance">—</span><span class="unit">km</span></p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card stat-wide">
       <p class="label">Puls</p>
-      <p class="value"><span id="statHr">—</span><span class="unit">bpm</span></p>
+      <p class="value"><span id="statHr">—</span><span class="unit">bpm</span><span id="zoneBadge" class="zone-badge" hidden></span></p>
     </div>
   </div>
 
-  <div id="speedSparklineWrap" class="stat-card">
+  <div id="trendsRow">
+  <div id="speedSparklineWrap" class="stat-card" title="Trend z ostatnich ~5 min; jaśniejsza, cieńsza linia to średnia z treningu">
     <div class="sparkline-header">
-      <p class="label">Prędkość — trend, ostatnie ~5 min</p>
-      <div class="sparkline-legend">
-        <span class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span>bieżąca</span>
-        <span class="legend-item"><span class="legend-dot legend-dot-avg" style="background: var(--accent);"></span>średnia</span>
-      </div>
+      <p class="label">Prędkość · 5 min</p>
     </div>
     <div class="sparkline-chart-wrap">
       <span id="speedSparkMax" class="sparkline-axis-label"></span>
@@ -131,13 +128,9 @@
     </div>
   </div>
 
-  <div id="hrSparklineWrap" class="stat-card">
+  <div id="hrSparklineWrap" class="stat-card" title="Trend z ostatnich ~5 min; jaśniejsza, cieńsza linia to średnia z treningu">
     <div class="sparkline-header">
-      <p class="label">Puls — trend, ostatnie ~5 min</p>
-      <div class="sparkline-legend">
-        <span class="legend-item"><span class="legend-dot" style="background: var(--hr-color);"></span>bieżący</span>
-        <span class="legend-item"><span class="legend-dot legend-dot-avg" style="background: var(--hr-color);"></span>średni</span>
-      </div>
+      <p class="label">Puls · 5 min</p>
     </div>
     <div class="sparkline-chart-wrap">
       <span id="hrSparkMax" class="sparkline-axis-label"></span>
@@ -145,9 +138,9 @@
       <canvas id="sparklineHr" class="sparkline-canvas" role="img" aria-label="Wykres trendu pulsu z ostatnich pięciu minut treningu"></canvas>
     </div>
   </div>
+  </div>
 
   <div id="zonesLiveCard" class="stat-card">
-    <p class="label">Czas w strefach tętna</p>
     <div id="zonesLiveBody"></div>
   </div>
 
@@ -169,17 +162,20 @@
     </div>
   </div>
 
-  <div id="logBox">Gotowy do połączenia z rowerem.</div>
+  <div id="logBox" title="Dotknij, żeby rozwinąć lub zwinąć dziennik">
+    <div id="logLast">Gotowy do połączenia z rowerem.</div>
+    <div id="logFull" hidden></div>
+  </div>
 </main>
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.18"></script>
-<script src="app.js?v=1.18"></script>
+<script src="nav.js?v=1.19"></script>
+<script src="app.js?v=1.19"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.18').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.19').catch(() => {});
   });
 }
 </script>
