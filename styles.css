@@ -291,9 +291,10 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 #controlsRow > .stat-card { min-width: 0; }
 #paramsCard {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  padding: 12px 14px;
   cursor: pointer;
 }
 #paramsCard input {
@@ -311,13 +312,16 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   flex-direction: column;
   align-items: stretch;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  padding: 12px 14px;
 }
+#controlsRow #resistanceCard .value { font-size: 22px; }
 #controlsRow .resistance-buttons { gap: 8px; }
 #controlsRow .resistance-buttons .stepper-btn {
   flex: 1;
   width: auto;
-  height: 40px;
+  height: 34px;
+  font-size: 22px;
   border-radius: 999px;
 }
 

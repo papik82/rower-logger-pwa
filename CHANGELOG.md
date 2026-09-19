@@ -11,6 +11,13 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.18 — 2026-09-19
+Niższe kafle „Sesja 15 min" i „Opór" (137 → 118 px na telefonie).
+- `#paramsCard`: układ poziomy — tytuł po lewej, checkbox po prawej,
+  mniejszy padding; wysokość wyznacza kafel oporu
+- `#resistanceCard` w rzędzie: padding 12/14, wartość 22 px, przyciski
+  34 px zamiast 40 px
+
 ## 1.17 — 2026-09-19
 Krótszy opis parametru na karcie Trening: „Sesja 15 min" zamiast „Licz
 dystans 15 min dla tej sesji" (mieści się w jednej linii w połowie
