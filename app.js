@@ -207,6 +207,9 @@ let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 1
 let dataGaps = [];
 let lastTickWallClock = null;
 let zoneSecs = [0, 0, 0, 0, 0, 0];
+// Oś czasu stref: kolejne odcinki { zone, secs } w kolejności treningu
+// (zone -1 = brak odczytu pulsu), sąsiednie w tej samej strefie scalone.
+let zoneTimeline = [];
 let liveZones = null;
 let zonesLiveView = null;
 let zonesSummaryView = null;
@@ -398,6 +401,7 @@ function createZonesView(container, zones, opts) {
 
   const bar = document.createElement("div");
   bar.className = "zones-live-bar";
+  bar.title = "Oś czasu treningu — kolor to strefa tętna w danym momencie";
 
   const chipsWrap = document.createElement("div");
   chipsWrap.className = "zones-live-chips";
@@ -410,9 +414,12 @@ function createZonesView(container, zones, opts) {
     const dot = document.createElement("span");
     dot.className = "zone-chip-dot";
     name.append(dot, segNames[i]);
+    const from = document.createElement("div");
+    from.className = "zone-chip-from";
+    from.textContent = i === 0 ? `<${zones[0].from}` : `od ${zones[i - 1].from}`;
     const time = document.createElement("div");
     time.className = "zone-chip-time";
-    chip.append(name, time);
+    chip.append(name, from, time);
     chipsWrap.appendChild(chip);
     return { chip, time };
   });
@@ -421,7 +428,7 @@ function createZonesView(container, zones, opts) {
   container.appendChild(root);
 
   return {
-    update(secs, currentIndex) {
+    update(secs, currentIndex, timeline) {
       if (badge) {
         if (currentIndex === null) {
           badge.hidden = true;
@@ -435,11 +442,10 @@ function createZonesView(container, zones, opts) {
 
       const total = secs.reduce((a, b) => a + b, 0);
       bar.replaceChildren();
-      secs.forEach((v, i) => {
-        if (v <= 0) return;
+      (timeline || []).forEach((t) => {
         const seg = document.createElement("div");
-        seg.style.flex = String(v);
-        seg.style.background = segColors[i];
+        seg.style.flex = String(t.secs);
+        if (t.zone >= 0) seg.style.background = segColors[t.zone];
         bar.appendChild(seg);
       });
       metaTotal.textContent = formatMinSec(total);
@@ -471,12 +477,16 @@ function initLiveZones() {
 function renderLiveZones() {
   if (!zonesLiveView) return;
   const hr = getEffectiveHeartRate();
-  zonesLiveView.update(zoneSecs, hr > 0 ? hrZoneIndex(liveZones, hr) : null);
+  zonesLiveView.update(zoneSecs, hr > 0 ? hrZoneIndex(liveZones, hr) : null, zoneTimeline);
 }
 
 function accumulateZoneTime(hr, seconds) {
-  if (!liveZones || !(hr > 0) || !(seconds > 0)) return;
-  zoneSecs[hrZoneIndex(liveZones, hr)] += seconds;
+  if (!liveZones || !(seconds > 0)) return;
+  const zone = hr > 0 ? hrZoneIndex(liveZones, hr) : -1;
+  if (zone >= 0) zoneSecs[zone] += seconds;
+  const last = zoneTimeline[zoneTimeline.length - 1];
+  if (last && last.zone === zone) last.secs += seconds;
+  else zoneTimeline.push({ zone, secs: seconds });
 }
 
 /* ============================================================
@@ -733,6 +743,7 @@ async function startRecording() {
     hrRunningCount = 0;
     dataGaps = [];
     zoneSecs = [0, 0, 0, 0, 0, 0];
+    zoneTimeline = [];
     renderLiveZones();
     hideSummary();
 
@@ -881,7 +892,7 @@ function showSummary(summary) {
 
   const zonesBlock = document.getElementById("summaryZones");
   if (zonesSummaryView && zoneSecs.some((v) => v > 0)) {
-    zonesSummaryView.update(zoneSecs, null, null);
+    zonesSummaryView.update(zoneSecs, null, zoneTimeline);
     zonesBlock.style.display = "";
   } else {
     zonesBlock.style.display = "none";

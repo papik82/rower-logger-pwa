@@ -312,13 +312,12 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 }
 .zones-live-bar {
   display: flex;
-  gap: 2px;
+  gap: 0;
   height: 12px;
   border-radius: 6px;
   overflow: hidden;
   background: var(--surface-2);
 }
-.zones-live-bar > div { min-width: 2px; }
 .zones-live-chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 8px; }
 .zone-chip { text-align: center; border-radius: 8px; padding: 3px 0; border: 1.5px solid transparent; min-width: 0; }
 .zone-chip.current { border-color: var(--zone-color); }
@@ -331,6 +330,7 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   color: var(--text-muted);
 }
 .zone-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--zone-color); flex: 0 0 auto; }
+.zone-chip-from { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .zone-chip-time { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
 
 /* ===== Zwarty układ strony Trening — całość ma mieścić się na ~1 ekranie ===== */

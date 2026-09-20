@@ -11,6 +11,17 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.21 — 2026-09-20
+Pasek stref tętna na stronie Trening jako oś czasu.
+- **Pasek = postęp w czasie**: kolejne odcinki w kolejności treningu,
+  kolor to strefa tętna w danym momencie, szerokość proporcjonalna do
+  czasu (`zoneTimeline` w `app.js`, sąsiednie próbki w tej samej strefie
+  scalane; próbki bez odczytu pulsu to pusty odcinek). Wcześniej pasek
+  pokazywał skumulowane sumy. Dotyczy paska na żywo i w podsumowaniu;
+  czasy pod paskiem nadal są sumami stref
+- **Próg strefy w legendzie**: pod nazwą strefy tętno, od którego
+  zaczyna się strefa („od 134"), a przy „<Z1" górna granica („<120")
+
 ## 1.20 — 2026-09-20
 Najlepsze odcinki 5 / 15 / 30 min dla każdego treningu, dopracowany
 układ strony Trening.
