@@ -13,6 +13,18 @@ const METRICS = [
     overlay: { col: "Dystans 15 min (m)", scale: 0.001, name: "Najlepsze 15 min", legend: "najlepsze 15 min" },
   },
   {
+    id: "best5", chip: "Najl. 5 min", label: "Najlepsze 5 min", minMinutes: 5, unit: "km", decimals: 2, overlay: null,
+    main: { col: "Dystans 5 min (m)", scale: 0.001, name: "Najlepsze 5 min", legend: "dystans w najlepszych 5 min" },
+  },
+  {
+    id: "best15", chip: "Najl. 15 min", label: "Najlepsze 15 min", minMinutes: 15, unit: "km", decimals: 2, overlay: null,
+    main: { col: "Dystans 15 min (m)", scale: 0.001, name: "Najlepsze 15 min", legend: "dystans w najlepszych 15 min" },
+  },
+  {
+    id: "best30", chip: "Najl. 30 min", label: "Najlepsze 30 min", minMinutes: 30, unit: "km", decimals: 2, overlay: null,
+    main: { col: "Dystans 30 min (m)", scale: 0.001, name: "Najlepsze 30 min", legend: "dystans w najlepszych 30 min" },
+  },
+  {
     id: "speed", label: "Prędkość", unit: "km/h", decimals: 1,
     main: { col: "Śr. prędkość (km/h)", scale: 1, name: "Śr. prędkość", legend: "średnia" },
     overlay: { col: "Maks. prędkość (km/h)", scale: 1, name: "Maks. prędkość", legend: "maksymalna" },
@@ -150,7 +162,7 @@ function buildSessions(rows, metric, from, to, hrOk) {
   const sessions = rows
     .map((row) => {
       const main = toNumber(row[metric.main.col]);
-      const overlay = toNumber(row[metric.overlay.col]);
+      const overlay = metric.overlay ? toNumber(row[metric.overlay.col]) : null;
       return {
         id: row["ID sesji"],
         date: row["Data"],
@@ -201,7 +213,7 @@ function renderAnalysis(container, rows, detail) {
 
   const metricRow = el("div", "chip-row");
   const metricButtons = METRICS.map((metric) => {
-    const btn = el("button", "chip", metric.label);
+    const btn = el("button", "chip", metric.chip || metric.label);
     btn.type = "button";
     btn.addEventListener("click", () => {
       analysisState.metricId = metric.id;
@@ -278,7 +290,9 @@ function renderAnalysis(container, rows, detail) {
     title.textContent = `${metric.label} na trening (${metric.unit})`;
     legend.innerHTML =
       `<span class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span>${metric.main.legend}</span>` +
-      `<span class="legend-item"><span class="legend-dot" style="background: var(--hr-color);"></span>${metric.overlay.legend}</span>`;
+      (metric.overlay
+        ? `<span class="legend-item"><span class="legend-dot" style="background: var(--hr-color);"></span>${metric.overlay.legend}</span>`
+        : "");
 
     metricButtons.forEach(({ btn, id }) => btn.classList.toggle("active", id === metric.id));
     presetButtons.forEach(({ btn, id }) => btn.classList.toggle("active", id === analysisState.presetId));
@@ -301,7 +315,9 @@ function renderAnalysis(container, rows, detail) {
     if (sessions.length === 0) {
       canvas.style.display = "none";
       emptyMsg.style.display = "";
-      emptyMsg.textContent = `Brak treningów z danymi „${metric.label}” w wybranym zakresie dat.`;
+      emptyMsg.textContent =
+        `Brak treningów z danymi „${metric.label}” w wybranym zakresie dat.` +
+        (metric.minMinutes ? ` Trening musi trwać co najmniej ${metric.minMinutes} min.` : "");
       return;
     }
     emptyMsg.style.display = "none";
@@ -356,7 +372,9 @@ function formatDurationHms(totalSeconds) {
 const RECORDS = [
   { label: "Najdłuższy dystans", unit: "km", get: (r) => scaled(r["Dystans całkowity (m)"], 0.001), fmt: (v) => v.toFixed(2) },
   { label: "Najdłuższy trening", unit: "", get: (r) => durationSeconds(r["Czas trwania (HH:MM:SS)"]), fmt: formatDurationHms },
+  { label: "Najlepsze 5 min", unit: "km", get: (r) => scaled(r["Dystans 5 min (m)"], 0.001), fmt: (v) => v.toFixed(2) },
   { label: "Najlepsze 15 min", unit: "km", get: (r) => scaled(r["Dystans 15 min (m)"], 0.001), fmt: (v) => v.toFixed(2) },
+  { label: "Najlepsze 30 min", unit: "km", get: (r) => scaled(r["Dystans 30 min (m)"], 0.001), fmt: (v) => v.toFixed(2) },
   { label: "Najwyższa śr. prędkość", unit: "km/h", get: (r) => scaled(r["Śr. prędkość (km/h)"], 1), fmt: (v) => v.toFixed(1) },
   { label: "Najwyższa maks. prędkość", unit: "km/h", get: (r) => scaled(r["Maks. prędkość (km/h)"], 1), fmt: (v) => v.toFixed(1) },
   { label: "Najwyższa śr. moc", unit: "W", get: (r) => scaled(r["Śr. moc (W)"], 1), fmt: (v) => v.toFixed(1) },

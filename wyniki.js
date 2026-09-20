@@ -2,6 +2,7 @@
 
 const HIDDEN_COLUMNS = ["ID sesji", "Koniec"];
 const PAGE_SIZE = 20;
+const BEST_EFFORT_COLUMNS = ["Dystans 5 min (m)", "Dystans 15 min (m)", "Dystans 30 min (m)"];
 
 // Skrócone, dwuwierszowe etykiety nagłówków — pełne nazwy kolumn z
 // arkusza (z jednostką w nawiasie) niepotrzebnie rozszerzały tabelę.
@@ -9,7 +10,9 @@ const PAGE_SIZE = 20;
 const COLUMN_LABELS = {
   "Czas trwania (HH:MM:SS)": "Czas\ntrwania",
   "Dystans całkowity (m)": "Dystans\n(m)",
+  "Dystans 5 min (m)": "Dystans 5 min\n(m)",
   "Dystans 15 min (m)": "Dystans 15 min\n(m)",
+  "Dystans 30 min (m)": "Dystans 30 min\n(m)",
   "Śr. prędkość (km/h)": "Śr. prędkość\n(km/h)",
   "Maks. prędkość (km/h)": "Maks. prędkość\n(km/h)",
   "Śr. kadencja (obr/min)": "Śr. kadencja\n(obr/min)",
@@ -116,7 +119,12 @@ function renderTable(container, rows) {
     return;
   }
 
-  const headers = Object.keys(rows[0]).filter((h) => !HIDDEN_COLUMNS.includes(h));
+  // Kolumny najlepszych odcinków w kolejności 5 / 15 / 30 min (w
+  // arkuszu 15 min jest pierwsza, bo doszła najwcześniej).
+  const efforts = BEST_EFFORT_COLUMNS.filter((h) => h in rows[0]);
+  const headers = Object.keys(rows[0])
+    .filter((h) => !HIDDEN_COLUMNS.includes(h) && !efforts.includes(h))
+    .concat(efforts);
   const newestFirst = rows.slice().reverse();
   const pageCount = Math.max(1, Math.ceil(newestFirst.length / PAGE_SIZE));
   let currentPage = 0;

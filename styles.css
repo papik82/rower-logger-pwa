@@ -176,7 +176,9 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 10px 16px;
 }
+#resistanceCard .stepper-btn { width: 44px; height: 44px; }
 #connectRow {
   min-width: 0;
   display: flex;
@@ -285,46 +287,6 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 #analysisContent { display: flex; flex-direction: column; gap: 20px; }
 
 /* Parametr treningu (checkbox przed/w trakcie treningu) */
-/* Rząd: parametr treningu + opór, obok siebie. W obu kaflach opis u góry,
-   element sterujący (checkbox / przyciski − +) na dole. */
-#controlsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-#controlsRow > .stat-card { min-width: 0; }
-#paramsCard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-}
-#paramsCard input {
-  order: 2;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  flex: 0 0 auto;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-#paramsCard .label { margin: 0 0 4px; }
-.param-title { font-size: 14px; font-weight: 500; line-height: 1.35; margin: 0; }
-#controlsRow #resistanceCard {
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 14px;
-}
-#controlsRow #resistanceCard .value { font-size: 22px; }
-#controlsRow .resistance-buttons { gap: 8px; }
-#controlsRow .resistance-buttons .stepper-btn {
-  flex: 1;
-  width: auto;
-  height: 34px;
-  font-size: 22px;
-  border-radius: 999px;
-}
-
 /* Wskaźnik czasu w strefach na stronie Trening (na żywo + podsumowanie) */
 #zonesLiveCard { padding: 10px 12px; }
 .summary-zones-title { font-size: 12px; color: var(--text-muted); margin: 16px 0 8px; }
@@ -337,8 +299,11 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   color: var(--text-muted);
   white-space: nowrap;
 }
+.zones-live-meta-left { display: flex; align-items: center; gap: 8px; }
+.zones-live-meta .zone-badge { font-size: 11px; padding: 1px 8px; }
 .zones-live-meta {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   font-size: 11px;
   color: var(--text-muted);
@@ -374,11 +339,11 @@ body.page-training main { gap: 12px; }
 /* kafle live: Czas, Prędkość, Kadencja / Dystans + szerszy Puls z plakietką strefy */
 #liveStats { grid-template-columns: repeat(6, 1fr); gap: 8px; }
 #liveStats > .stat-card { grid-column: span 2; padding: 10px 12px; min-width: 0; }
-#liveStats > .stat-wide { grid-column: span 4; }
+#liveStats > .stat-card:nth-child(-n+2) { grid-column: span 3; }
+#liveStats > .stat-card:nth-child(-n+2) .value { font-size: 24px; }
 #liveStats .label { font-size: 11px; margin: 0 0 2px; }
 #liveStats .value { font-size: 20px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 4px; }
 #liveStats .unit { font-size: 11px; margin-left: 0; }
-#liveStats .value .zone-badge { margin-left: auto; align-self: center; }
 
 /* trendy prędkości i pulsu obok siebie */
 #trendsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

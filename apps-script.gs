@@ -487,3 +487,124 @@ function patchCallGapSession_20260911() {
     "nowy czas trwania " + durationStr + ", Dystans 15 min = " + distance15min
   );
 }
+
+/* ============================================================
+   Najlepsze odcinki 5 / 15 / 30 min — przeliczenie archiwum
+   ============================================================
+   PWA (od wersji 1.20) zapisuje w Trening_Podsumowania trzy kolumny
+   najlepszego odcinka: "Dystans 5 min (m)", "Dystans 15 min (m)" i
+   "Dystans 30 min (m)". Kolumny 5 i 30 min dochodzą po istniejącej
+   "Dystans 15 min (m)" (jeśli ich nie ma, funkcja dopisuje nagłówki),
+   a wartości dla starych treningów liczy z próbek Trening_Szczegoly
+   tą samą funkcją bestDistanceInWindow co PWA. Trening krótszy niż
+   okno dostaje pustą komórkę.
+
+   Uruchamiasz RĘCZNIE z tego edytora (bez nowego wdrożenia):
+   1. "previewBestEffortsBackfill" — tylko wypisuje w dzienniku, jakie
+      nagłówki doda i które komórki zmieni (stara → nowa wartość).
+   2. "backfillBestEfforts" — to samo, ale zapisuje.
+   Zmienia tylko te trzy kolumny i tylko komórki, w których wartość się
+   różni. Idempotentne — po zapisie kolejny podgląd pokazuje 0 zmian.
+   Zastępuje starszą "backfillDistance15Min" (która liczy tylko 15 min).
+   ============================================================ */
+const BEST_EFFORT_COLUMNS_ = [
+  { header: "Dystans 5 min (m)", seconds: 300 },
+  { header: "Dystans 15 min (m)", seconds: 900 },
+  { header: "Dystans 30 min (m)", seconds: 1800 },
+];
+
+function computeBestEffortUpdates_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const detailSheet = ss.getSheetByName(DETAIL_SHEET_NAME);
+  const summarySheet = ss.getSheetByName(SUMMARY_SHEET_NAME);
+  if (!detailSheet || !summarySheet) {
+    throw new Error("Nie znaleziono jednej z zakładek.");
+  }
+
+  const detailValues = detailSheet.getDataRange().getValues();
+  const detailHeaders = detailValues[0];
+  const sessionIdx = detailHeaders.indexOf("ID sesji");
+  const elapsedIdx = detailHeaders.indexOf("Czas od startu (s)");
+  const distanceIdx = detailHeaders.indexOf("Dystans (m)");
+  if (sessionIdx === -1 || elapsedIdx === -1 || distanceIdx === -1) {
+    throw new Error("Brak oczekiwanych kolumn w " + DETAIL_SHEET_NAME);
+  }
+
+  const bySession = {};
+  for (let i = 1; i < detailValues.length; i++) {
+    const row = detailValues[i];
+    const id = row[sessionIdx];
+    if (!id) continue;
+    if (!bySession[id]) bySession[id] = [];
+    bySession[id].push({
+      elapsed_s: Number(row[elapsedIdx]),
+      distance_m: Number(row[distanceIdx]),
+    });
+  }
+  Object.keys(bySession).forEach((id) => {
+    bySession[id].sort((a, b) => a.elapsed_s - b.elapsed_s);
+  });
+
+  const summaryValues = summarySheet.getDataRange().getValues();
+  const summaryHeaders = summaryValues[0];
+  const idIdx = summaryHeaders.indexOf("ID sesji");
+  if (idIdx === -1) throw new Error("Brak kolumny ID sesji w " + SUMMARY_SHEET_NAME);
+
+  // Brakujące nagłówki dochodzą na końcu, w kolejności 5, 30 min (15 min
+  // już jest) — tak samo układa je wiersz wysyłany z PWA.
+  const headersToAdd = [];
+  const colIdx = {};
+  let nextCol = summaryHeaders.length;
+  BEST_EFFORT_COLUMNS_.forEach((c) => {
+    let i = summaryHeaders.indexOf(c.header);
+    if (i === -1) {
+      i = nextCol++;
+      headersToAdd.push({ header: c.header, col: i + 1 });
+    }
+    colIdx[c.header] = i;
+  });
+
+  const updates = [];
+  for (let r = 1; r < summaryValues.length; r++) {
+    const id = summaryValues[r][idIdx];
+    const samples = bySession[id];
+    if (!samples) continue;
+    BEST_EFFORT_COLUMNS_.forEach((c) => {
+      const value = bestDistanceInWindow(samples, c.seconds);
+      const next = value === null ? "" : value;
+      const old = summaryValues[r][colIdx[c.header]];
+      const oldValue = old === undefined ? "" : old;
+      const same = next === "" ? oldValue === "" : Number(oldValue) === next;
+      if (!same) {
+        updates.push({ row: r + 1, col: colIdx[c.header] + 1, id: id, header: c.header, old: oldValue, next: next });
+      }
+    });
+  }
+  return { headersToAdd: headersToAdd, updates: updates };
+}
+
+function previewBestEffortsBackfill() {
+  const result = computeBestEffortUpdates_();
+  result.headersToAdd.forEach((h) => Logger.log("Nowy nagłówek w kolumnie " + h.col + ": " + h.header));
+  result.updates.forEach((u) => {
+    Logger.log(u.id + " · " + u.header + ": " + (u.old === "" ? "(puste)" : u.old) + " → " + (u.next === "" ? "(puste)" : u.next));
+  });
+  Logger.log(
+    "PODGLĄD (nic nie zapisano): " + result.headersToAdd.length + " nowych nagłówków, " +
+    result.updates.length + " komórek do zmiany w " + SUMMARY_SHEET_NAME + "."
+  );
+}
+
+function backfillBestEfforts() {
+  const summarySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUMMARY_SHEET_NAME);
+  const result = computeBestEffortUpdates_();
+  result.headersToAdd.forEach((h) => {
+    summarySheet.getRange(1, h.col).setValue(h.header);
+    Logger.log("Dodano nagłówek w kolumnie " + h.col + ": " + h.header);
+  });
+  result.updates.forEach((u) => {
+    summarySheet.getRange(u.row, u.col).setValue(u.next);
+    Logger.log(u.id + " · " + u.header + ": " + (u.old === "" ? "(puste)" : u.old) + " → " + (u.next === "" ? "(puste)" : u.next));
+  });
+  Logger.log("Zaktualizowano " + result.updates.length + " komórek w " + SUMMARY_SHEET_NAME + ".");
+}

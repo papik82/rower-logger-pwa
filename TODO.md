@@ -57,9 +57,8 @@ czyta dane z arkusza, nie łączy się z rowerem).
       sama logika zduplikowana w `apps-script.gs` do jednorazowego
       backfillu starych treningów — patrz `backfillDistance15Min`).
       Widoczny w tabeli Wyników i jako nakładany słupek na wykresie
-      dystansu. Liczony na razie dla każdego treningu >15 min; w
-      przyszłości ma być liczony tylko dla treningów z zaznaczonym
-      odpowiednim parametrem — patrz punkt niżej
+      dystansu. Liczony dla każdego treningu dłuższego niż okno
+      (od 1.20 razem z 5 i 30 min — patrz niżej)
       - [x] Interaktywne zaznaczanie słupka na wykresie (klik/tap na
             kolumnie) pokazujące etykietę z dokładną wartością dla
             danej pozycji — wykres dystansu na podstronie Analizy
@@ -108,6 +107,14 @@ czyta dane z arkusza, nie łączy się z rowerem).
       zostaje pusta. `isBest15Enabled`/`initTrainingParams` w `app.js`.
       Zmiana po Stop niezrealizowana (wymagałaby edycji zapisanego
       wiersza)
+      → Zastąpione w 1.20: parametr usunięty, najlepsze odcinki 5 / 15 /
+      30 min liczone zawsze (patrz niżej)
+- [x] Najlepsze odcinki 5 / 15 / 30 min (`CONFIG.BEST_EFFORTS` w
+      `app.js`): liczone automatycznie dla każdego treningu, pusta
+      komórka gdy trening krótszy niż okno. Osobne wykresy i rekordy w
+      Analizach, kolumny w Wynikach, archiwum przelicza
+      `previewBestEffortsBackfill`/`backfillBestEfforts` w
+      `apps-script.gs` (jednorazowo z edytora Apps Script)
 
 ---
 

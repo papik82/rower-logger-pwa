@@ -11,7 +11,16 @@ const CONFIG = {
   SAMPLE_INTERVAL_S: 5,
   IDLE_SPEED_THRESHOLD_KMH: 0.5,
   TRIM_IDLE_EDGES: true,
-  BEST_EFFORT_WINDOW_S: 900, // 15 minut — patrz "Dystans 15 min" w podsumowaniu
+  // Najlepsze odcinki: dystans w najlepszym oknie N minut (patrz
+  // bestDistanceInWindow). Liczone dla każdego treningu; trening krótszy
+  // niż okno zostawia pustą komórkę. Kolejność wartości w wierszu
+  // arkusza: 15, 5, 30 min (15 min była pierwsza, nowe kolumny doszły
+  // po niej — patrz backfillBestEfforts w apps-script.gs).
+  BEST_EFFORTS: [
+    { key: "distance_5min_m", minutes: 5, seconds: 300 },
+    { key: "distance_15min_m", minutes: 15, seconds: 900 },
+    { key: "distance_30min_m", minutes: 30, seconds: 1800 },
+  ],
 };
 
 const FITNESS_MACHINE_SERVICE = 0x1826;
@@ -364,7 +373,6 @@ function refreshHrDisplay() {
    ============================================================ */
 function createZonesView(container, zones, opts) {
   container.textContent = "";
-  const badge = opts.badge || null;
   const segColors = [ZONE_BELOW_COLOR, ...zones.map((z) => z.color)];
   const segNames = ["<Z1", ...zones.map((z) => `Z${z.number}`)];
 
@@ -373,10 +381,20 @@ function createZonesView(container, zones, opts) {
 
   const meta = document.createElement("div");
   meta.className = "zones-live-meta";
+  const metaLeft = document.createElement("div");
+  metaLeft.className = "zones-live-meta-left";
   const metaTitle = document.createElement("span");
   metaTitle.textContent = opts.title || "";
+  metaLeft.appendChild(metaTitle);
+  let badge = null;
+  if (opts.showCurrent) {
+    badge = document.createElement("span");
+    badge.className = "zone-badge";
+    badge.hidden = true;
+    metaLeft.appendChild(badge);
+  }
   const metaTotal = document.createElement("span");
-  meta.append(metaTitle, metaTotal);
+  meta.append(metaLeft, metaTotal);
 
   const bar = document.createElement("div");
   bar.className = "zones-live-bar";
@@ -444,7 +462,7 @@ function initLiveZones() {
   liveZones = computeHrZones(maxHr, getRestingHr());
   zonesLiveView = createZonesView(body, liveZones, {
     title: "Czas w strefach tętna",
-    badge: document.getElementById("zoneBadge"),
+    showCurrent: true,
   });
   zonesSummaryView = createZonesView(document.getElementById("summaryZonesBody"), liveZones, { title: "Łącznie" });
   renderLiveZones();
@@ -630,27 +648,6 @@ function formatDuration(totalSeconds) {
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
-/* ============================================================
-   Parametry treningu — na razie jeden: "Licz dystans 15 min dla tej
-   sesji". Wybór pamiętany między treningami (domyślnie włączony, jak
-   dotąd), można go zmienić przed startem i w trakcie — do kliknięcia
-   Stop, bo podsumowanie idzie do arkusza od razu po zakończeniu.
-   ============================================================ */
-const PARAM_BEST15_KEY = "rowerLoggerParamBest15";
-
-function isBest15Enabled() {
-  return document.getElementById("paramBest15").checked;
-}
-
-function initTrainingParams() {
-  const box = document.getElementById("paramBest15");
-  box.checked = localStorage.getItem(PARAM_BEST15_KEY) !== "0";
-  box.addEventListener("change", () => {
-    localStorage.setItem(PARAM_BEST15_KEY, box.checked ? "1" : "0");
-    if (isRecording) log(`  Dystans 15 min dla tej sesji: ${box.checked ? "liczony" : "pomijany"}.`);
-  });
-}
-
 function buildSummary() {
   const active = trimIdleEdges(history);
   const col = (key) => active.map((h) => h[key]).filter((v) => v !== undefined);
@@ -669,11 +666,11 @@ function buildSummary() {
   const windowSamples = active
     .filter((h) => h.elapsed_s !== undefined && h.distance_m !== undefined)
     .map((h) => ({ elapsed_s: h.elapsed_s, distance_m: h.distance_m }));
-  // Parametr treningu: bez zaznaczenia "Licz dystans 15 min" komórka
-  // w arkuszu zostaje pusta (Wyniki i Analizy to już obsługują).
-  const distance15min = isBest15Enabled()
-    ? bestDistanceInWindow(windowSamples, CONFIG.BEST_EFFORT_WINDOW_S)
-    : null;
+  const efforts = {};
+  CONFIG.BEST_EFFORTS.forEach((e) => {
+    const value = bestDistanceInWindow(windowSamples, e.seconds);
+    efforts[e.key] = value !== null ? value : "";
+  });
 
   const durationS = elapsedVals.length
     ? Math.max(...elapsedVals) - Math.min(...elapsedVals)
@@ -698,7 +695,9 @@ function buildSummary() {
     avg_hr: hrs.length ? Math.round(mean(hrs) * 10) / 10 : "",
     max_hr: hrs.length ? Math.max(...hrs) : "",
     total_energy: energies.length ? Math.max(...energies) : "",
-    distance_15min_m: distance15min !== null ? distance15min : "",
+    distance_15min_m: efforts.distance_15min_m,
+    distance_5min_m: efforts.distance_5min_m,
+    distance_30min_m: efforts.distance_30min_m,
   };
 
   const row = [
@@ -706,7 +705,7 @@ function buildSummary() {
     summary.duration_str, summary.distance_m, summary.avg_speed, summary.max_speed,
     summary.avg_cadence, summary.max_cadence, summary.avg_power, summary.max_power,
     summary.avg_resistance, summary.avg_hr, summary.max_hr, summary.total_energy,
-    summary.distance_15min_m,
+    summary.distance_15min_m, summary.distance_5min_m, summary.distance_30min_m,
   ];
 
   return { summary, row };
@@ -854,13 +853,16 @@ function showSummary(summary) {
     `${summary.avg_cadence ?? "—"} / ${summary.max_cadence ?? "—"} obr/min`;
   document.getElementById("sumPower").textContent =
     `${summary.avg_power ?? "—"} / ${summary.max_power ?? "—"} W`;
-  const best15Row = document.getElementById("sumBest15Row");
-  if (summary.distance_15min_m !== "") {
-    document.getElementById("sumBest15").textContent = `${summary.distance_15min_m} m`;
-    best15Row.style.display = "";
-  } else {
-    best15Row.style.display = "none";
-  }
+  CONFIG.BEST_EFFORTS.forEach((e) => {
+    const row = document.getElementById(`sumBest${e.minutes}Row`);
+    const value = summary[e.key];
+    if (value !== "") {
+      document.getElementById(`sumBest${e.minutes}`).textContent = `${value} m`;
+      row.style.display = "";
+    } else {
+      row.style.display = "none";
+    }
+  });
 
   document.getElementById("sumHr").textContent =
     `${summary.avg_hr || "—"} / ${summary.max_hr || "—"} bpm`;
@@ -1014,7 +1016,6 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 
 document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
 initLiveZones();
-initTrainingParams();
 initLogToggle();
 checkConfig();
 updateResistanceDisplay();

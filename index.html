@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.19">
+<link rel="stylesheet" href="styles.css?v=1.20">
 </head>
 <body class="page-training">
 
@@ -72,24 +72,14 @@
     </div>
   </div>
 
-  <div id="controlsRow">
-    <label id="paramsCard" class="stat-card" title="Sesja 15 min: liczy dystans najlepszego 15-minutowego odcinka, który trafi do Wyników i Analiz. Wybór zostaje na kolejne treningi; zmienisz go do kliknięcia Stop.">
-      <input type="checkbox" id="paramBest15">
-      <div>
-        <p class="label">Parametr treningu</p>
-        <p class="param-title">Sesja 15 min</p>
-      </div>
-    </label>
-
-    <div id="resistanceCard" class="stat-card">
-      <div>
-        <p class="label">Opór na rowerze</p>
-        <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 16</span></p>
-      </div>
-      <div class="resistance-buttons">
-        <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
-        <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
-      </div>
+  <div id="resistanceCard" class="stat-card">
+    <div>
+      <p class="label">Opór na rowerze</p>
+      <p class="value"><span id="resistanceValue">5</span><span class="unit">/ 16</span></p>
+    </div>
+    <div class="resistance-buttons">
+      <button id="resistanceMinus" class="stepper-btn" aria-label="Zmniejsz opór">&#8722;</button>
+      <button id="resistancePlus" class="stepper-btn" aria-label="Zwiększ opór">+</button>
     </div>
   </div>
 
@@ -97,6 +87,10 @@
     <div class="stat-card">
       <p class="label">Czas</p>
       <p class="value"><span id="statElapsed">—</span></p>
+    </div>
+    <div class="stat-card">
+      <p class="label">Dystans</p>
+      <p class="value"><span id="statDistance">—</span><span class="unit">km</span></p>
     </div>
     <div class="stat-card">
       <p class="label">Prędkość</p>
@@ -107,12 +101,8 @@
       <p class="value"><span id="statCadence">—</span><span class="unit">obr/min</span></p>
     </div>
     <div class="stat-card">
-      <p class="label">Dystans</p>
-      <p class="value"><span id="statDistance">—</span><span class="unit">km</span></p>
-    </div>
-    <div class="stat-card stat-wide">
       <p class="label">Puls</p>
-      <p class="value"><span id="statHr">—</span><span class="unit">bpm</span><span id="zoneBadge" class="zone-badge" hidden></span></p>
+      <p class="value"><span id="statHr">—</span><span class="unit">bpm</span></p>
     </div>
   </div>
 
@@ -154,7 +144,9 @@
       <div class="summary-row"><p class="k">Kadencja śr. / maks.</p><p class="v" id="sumCadence">—</p></div>
       <div class="summary-row"><p class="k">Moc śr. / maks.</p><p class="v" id="sumPower">—</p></div>
       <div class="summary-row"><p class="k">Puls śr. / maks.</p><p class="v" id="sumHr">—</p></div>
+      <div class="summary-row" id="sumBest5Row" style="display: none;"><p class="k">Najlepsze 5 min</p><p class="v" id="sumBest5">—</p></div>
       <div class="summary-row" id="sumBest15Row" style="display: none;"><p class="k">Najlepsze 15 min</p><p class="v" id="sumBest15">—</p></div>
+      <div class="summary-row" id="sumBest30Row" style="display: none;"><p class="k">Najlepsze 30 min</p><p class="v" id="sumBest30">—</p></div>
     </div>
     <div id="summaryZones" style="display: none;">
       <p class="summary-zones-title">Czas w strefach tętna</p>
@@ -170,12 +162,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.19"></script>
-<script src="app.js?v=1.19"></script>
+<script src="nav.js?v=1.20"></script>
+<script src="app.js?v=1.20"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.19').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.20').catch(() => {});
   });
 }
 </script>

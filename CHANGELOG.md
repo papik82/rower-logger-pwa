@@ -11,6 +11,30 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.20 — 2026-09-20
+Najlepsze odcinki 5 / 15 / 30 min dla każdego treningu, dopracowany
+układ strony Trening.
+- **Najlepsze odcinki 5, 15 i 30 min** (`CONFIG.BEST_EFFORTS` w
+  `app.js`): liczone automatycznie przy Stop dla każdego treningu, który
+  jest dłuższy niż okno (krótszy zostawia pustą komórkę). Nowe kolumny
+  arkusza „Dystans 5 min (m)" i „Dystans 30 min (m)" dochodzą po
+  „Dystans 15 min (m)" — wiersz ma teraz 19 kolumn. Podsumowanie po
+  treningu pokazuje wszystkie, które się zmieściły
+- **Analizy**: osobne wykresy „Najl. 5 / 15 / 30 min" (słupki dystansu,
+  bez nakładki maksimum — `overlay: null`) i rekordy osobiste dla 5 i 30
+  min obok istniejącego 15 min. **Wyniki**: kolumny w kolejności 5 / 15 /
+  30
+- **Archiwum**: `previewBestEffortsBackfill` / `backfillBestEfforts` w
+  `apps-script.gs` dopisują brakujące nagłówki i liczą wartości dla
+  starych treningów z próbek `Trening_Szczegoly` (tą samą
+  `bestDistanceInWindow`). Uruchamiane ręcznie, idempotentne
+- **Usunięty** checkbox „Sesja 15 min" (`isBest15Enabled`,
+  `initTrainingParams`) i cały `#controlsRow` — funkcja jest domyślna
+- **Trening**: kafel oporu znów na pełną szerokość (przyciski 44 px);
+  kafle live: rząd 1 — Czas, Dystans (większa czcionka), rząd 2 —
+  Prędkość, Kadencja, Puls. Plakietka bieżącej strefy przeniesiona z
+  kafla Puls do nagłówka karty „Czas w strefach"
+
 ## 1.19 — 2026-09-19
 Zwarty układ strony Trening — całość w trakcie treningu mieści się na
 jednym ekranie telefonu (812 px zamiast 1336 px), przed startem 913 px.
