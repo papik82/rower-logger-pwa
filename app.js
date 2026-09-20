@@ -116,6 +116,9 @@ function decodeHeartRateMeasurement(dataView) {
    parsuje treść jako JSON po swojej stronie)
    ============================================================ */
 async function sendToSheets(type, row) {
+  // Trening testowy: nic nie wychodzi z aplikacji i nic nie ląduje w
+  // kolejce offline (inaczej testowe dane wysłałyby się później).
+  if (sessionIsTest) return { ok: false, test: true };
   if (!CONFIG.APPS_SCRIPT_URL) {
     queueOffline(type, row);
     return { ok: false, offline: true };
@@ -207,6 +210,9 @@ let manualResistance = parseInt(localStorage.getItem("rowerLoggerResistance"), 1
 let dataGaps = [];
 let lastTickWallClock = null;
 let zoneSecs = [0, 0, 0, 0, 0, 0];
+// Czy bieżąca sesja jest testowa — ustalane przy Start (ustawienie
+// z Ustawień), żeby zmiana w trakcie nie rozdzieliła jednej sesji.
+let sessionIsTest = false;
 // Oś czasu stref: kolejne odcinki { zone, secs } w kolejności treningu
 // (zone -1 = brak odczytu pulsu), sąsiednie w tej samej strefie scalone.
 let zoneTimeline = [];
@@ -730,6 +736,9 @@ async function startRecording() {
     return;
   }
   try {
+    sessionIsTest = isTestMode();
+    updateTestBanner();
+    if (sessionIsTest) log("Tryb testowy: dane tego treningu NIE będą zapisywane w arkuszu.");
     sessionId = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 15);
     startTime = new Date();
     history = [];
@@ -752,7 +761,7 @@ async function startRecording() {
     startElapsedTimer();
 
     isRecording = true;
-    setStatus("Trening w toku", "recording");
+    setStatus(sessionIsTest ? "Trening testowy w toku" : "Trening w toku", "recording");
     setRecordButton(true);
   } catch (err) {
     log(`Błąd startu: ${err.message}`);
@@ -777,7 +786,11 @@ async function stopRecording() {
   showSummary(summary);
 
   setStatus("Gotowy", "");
-  log("=== Trening zakończony i zapisany ===\n");
+  log(sessionIsTest
+    ? "=== Trening testowy zakończony — nic nie zapisano w arkuszu ===\n"
+    : "=== Trening zakończony i zapisany ===\n");
+  sessionIsTest = false;
+  updateTestBanner();
 }
 
 /* ============================================================
@@ -958,8 +971,19 @@ function drawSparkline() {
    ============================================================ */
 function checkConfig() {
   const warning = document.getElementById("configWarning");
-  warning.classList.toggle("visible", !CONFIG.APPS_SCRIPT_URL);
+  warning.classList.toggle("visible", !CONFIG.APPS_SCRIPT_URL && !isTestMode());
 }
+
+// Oznaczenie testowego treningu: w trakcie sesji wg wartości zatrzaśniętej
+// przy Start, poza sesją wg bieżącego ustawienia (żeby było widać, że
+// najbliższy trening będzie testowy).
+function updateTestBanner() {
+  const on = isRecording ? sessionIsTest : isTestMode();
+  document.getElementById("testBanner").classList.toggle("visible", on);
+  document.body.classList.toggle("test-session", on);
+  checkConfig();
+}
+window.addEventListener("pageshow", updateTestBanner);
 
 /* ============================================================
    Ręczny opór — rower nie ma elektronicznej regulacji, więc
@@ -1028,7 +1052,7 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 document.getElementById("bluetoothNotice").classList.toggle("visible", !navigator.bluetooth);
 initLiveZones();
 initLogToggle();
-checkConfig();
+updateTestBanner();
 updateResistanceDisplay();
 retryOfflineQueue();
 document.getElementById("appVersion").textContent = APP_VERSION;

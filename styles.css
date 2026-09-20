@@ -455,6 +455,23 @@ body.recording #hrCard:not(.connected) .hr-connect-btn { display: block; width: 
 }
 #configWarning.visible { display: block; }
 
+#testBanner {
+  background: rgba(245, 197, 66, 0.12);
+  border: 0.5px solid #F5C542;
+  color: #F5C542;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  display: none;
+}
+#testBanner.visible { display: block; }
+
+.settings-check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); cursor: pointer; }
+.settings-field .settings-check { font-size: 14px; color: var(--text); }
+.settings-field .settings-check input { width: 20px; height: 20px; padding: 0; margin: 0; accent-color: var(--accent); flex: 0 0 auto; }
+
 #bluetoothNotice {
   background: rgba(245, 197, 66, 0.1);
   border: 0.5px solid #F5C542;

@@ -4,6 +4,7 @@ const urlInput = document.getElementById("appsScriptUrl");
 const maxHrInput = document.getElementById("maxHr");
 const restingHrInput = document.getElementById("restingHr");
 const minCoverageInput = document.getElementById("minHrCoverage");
+const testModeInput = document.getElementById("testMode");
 const statusEl = document.getElementById("settingsStatus");
 
 urlInput.value = getAppsScriptUrl();
@@ -13,6 +14,7 @@ const currentRestingHr = getRestingHr();
 restingHrInput.value = currentRestingHr === null ? "" : currentRestingHr;
 const storedMinCoverage = localStorage.getItem("rowerLoggerMinHrCoverage");
 minCoverageInput.value = storedMinCoverage === null ? "" : storedMinCoverage;
+testModeInput.checked = isTestMode();
 
 function showStatus(message, isError) {
   statusEl.textContent = message;
@@ -135,8 +137,14 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
     minCoverageInput.value = minCoverageValue;
   }
 
+  if (testModeInput.checked) localStorage.setItem("rowerLoggerTestMode", "1");
+  else localStorage.removeItem("rowerLoggerTestMode");
+
   renderHrZones();
-  showStatus("Zapisano ustawienia.", false);
+  showStatus(
+    testModeInput.checked ? "Zapisano ustawienia. Tryb testowy WŁĄCZONY — treningi nie będą zapisywane." : "Zapisano ustawienia.",
+    false
+  );
 });
 
 // Ta sama logika co dawniej w app.js — przeniesiona tu, bo to

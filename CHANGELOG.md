@@ -11,6 +11,23 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.23 — 2026-09-20
+Tryb „Trening testowy”.
+- **Ustawienia**: checkbox „Trening testowy” (`rowerLoggerTestMode` w
+  localStorage, `isTestMode()` w `nav.js`), zapisywany przyciskiem
+  „Zapisz ustawienia”. Obowiązuje od następnego Startu
+- **Bez zapisu**: gdy sesja jest testowa (`sessionIsTest`, ustalane raz
+  przy Start), `sendToSheets` niczego nie wysyła i nie kolejkuje w
+  `rowerLoggerOfflineQueue` — ani próbek, ani podsumowania. Podsumowanie
+  po Stop i wykresy działają normalnie, dziennik zaznacza, że nic nie
+  zapisano. Zaległa kolejka z prawdziwych treningów nadal wysyła się
+  jak dotąd
+- **Oznaczenie na ekranie Trening**: żółty baner „Trening testowy — bez
+  zapisu w arkuszu” pod menu (widoczny także przed Startem, gdy tryb
+  jest włączony) i status „Trening testowy w toku”. Ostrzeżenie o braku
+  adresu Apps Script jest w trybie testowym ukryte
+- Nadal wymagane połączenie z rowerem — to nie symulator danych
+
 ## 1.22 — 2026-09-20
 Sortowanie tabeli w Wynikach.
 - **Klik w nagłówek kolumny** przełącza: malejąco → rosnąco → domyślny

@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.22">
+<link rel="stylesheet" href="styles.css?v=1.23">
 </head>
 <body>
 
@@ -64,13 +64,21 @@
     <p class="settings-hint">Trening jest pomijany w analizach pulsu (wykres pulsu, czas w strefach, rekord maks. pulsu), jeśli odczyty pulsu większe od 0 stanowią mniej niż tyle procent jego próbek. Np. 25 = pomiń treningi, w których ponad 75% odczytów to zera. Dystans, moc i reszta zostają. Puste pole = 50%, 0 = nie pomijaj żadnych.</p>
   </div>
 
+  <div class="stat-card settings-field">
+    <label class="settings-check" for="testMode">
+      <input type="checkbox" id="testMode">
+      <span>Trening testowy</span>
+    </label>
+    <p class="settings-hint">Trening jest tylko wirtualny — do testów aplikacji. Wyniki i próbki nie są zapisywane w arkuszu ani w kolejce offline, a na ekranie Trening widać oznaczenie „Trening testowy”. Obowiązuje od następnego Startu; trwającego treningu nie zmienia.</p>
+  </div>
+
   <p id="settingsStatus" class="settings-status"></p>
 
   <button class="hr-connect-btn" id="saveSettingsBtn">Zapisz ustawienia</button>
   <button class="secondary" id="forceUpdateBtn">Wymuś aktualizację aplikacji</button>
 </main>
 
-<script src="nav.js?v=1.22"></script>
-<script src="ustawienia.js?v=1.22"></script>
+<script src="nav.js?v=1.23"></script>
+<script src="ustawienia.js?v=1.23"></script>
 </body>
 </html>

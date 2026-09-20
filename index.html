@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.22">
+<link rel="stylesheet" href="styles.css?v=1.23">
 </head>
 <body class="page-training">
 
@@ -35,6 +35,10 @@
     <span class="nav-label">Ustawienia</span>
   </a>
 </nav>
+
+<div id="testBanner" role="status">
+  <strong>Trening testowy</strong> — bez zapisu w arkuszu
+</div>
 
 <div id="configWarning">
   Nie ustawiono adresu Google Apps Script. Otwórz "Ustawienia" w menu powyżej, żeby wkleić URL wdrożenia.
@@ -162,12 +166,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.22"></script>
-<script src="app.js?v=1.22"></script>
+<script src="nav.js?v=1.23"></script>
+<script src="app.js?v=1.23"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.22').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.23').catch(() => {});
   });
 }
 </script>

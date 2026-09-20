@@ -5,7 +5,7 @@
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
 // sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
-const APP_VERSION = "1.22";
+const APP_VERSION = "1.23";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -101,6 +101,12 @@ function getRestingHr() {
 // takie treningi zaniżają średnie i zniekształcają strefy. Puste pole
 // w Ustawieniach = wartość domyślna; 0 = nie pomijaj żadnych.
 const DEFAULT_MIN_HR_COVERAGE_PCT = 50;
+
+// Tryb "trening testowy" (Ustawienia): sesja rejestrowana normalnie na
+// ekranie, ale nic nie trafia do arkusza ani do kolejki offline.
+function isTestMode() {
+  return localStorage.getItem("rowerLoggerTestMode") === "1";
+}
 function getMinHrCoveragePct() {
   const raw = localStorage.getItem("rowerLoggerMinHrCoverage");
   if (raw === null || raw === "") return DEFAULT_MIN_HR_COVERAGE_PCT;
