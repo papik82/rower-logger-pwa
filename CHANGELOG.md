@@ -11,6 +11,15 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.22 — 2026-09-20
+Sortowanie tabeli w Wynikach.
+- **Klik w nagłówek kolumny** przełącza: malejąco → rosnąco → domyślny
+  porządek (najnowsze na górze). Strzałka ▲/▼ i kolor akcentu przy
+  aktywnej kolumnie, `aria-sort` na `th`. Sortowanie obejmuje wszystkie
+  treningi, nie tylko bieżącą stronę; zmiana sortowania wraca na stronę
+  1. Puste komórki (np. brak pulsu, 30 min) zawsze na końcu
+  (`toggleSort`/`applySort` w `wyniki.js`)
+
 ## 1.21 — 2026-09-20
 Pasek stref tętna na stronie Trening jako oś czasu.
 - **Pasek = postęp w czasie**: kolejne odcinki w kolejności treningu,

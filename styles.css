@@ -619,6 +619,20 @@ footer { text-align: center; padding: 16px 0 4px; font-size: 11px; color: var(--
   vertical-align: bottom;
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
+.sort-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  white-space: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+.sort-btn:hover, .data-table th.sorted .sort-btn { color: var(--accent); }
+.sort-arrow { font-size: 9px; }
 
 .pagination {
   display: flex;

@@ -126,18 +126,34 @@ function renderTable(container, rows) {
     .filter((h) => !HIDDEN_COLUMNS.includes(h) && !efforts.includes(h))
     .concat(efforts);
   const newestFirst = rows.slice().reverse();
+  let displayRows = newestFirst;
   const pageCount = Math.max(1, Math.ceil(newestFirst.length / PAGE_SIZE));
   let currentPage = 0;
+  // Sortowanie: kliknięcie nagłówka przełącza malejąco → rosnąco →
+  // domyślny porządek (najnowsze na górze). Puste komórki zawsze na końcu.
+  let sortHeader = null;
+  let sortDir = null;
 
   const table = document.createElement("table");
   table.className = "data-table";
 
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
+  const sortIndicators = new Map();
   headers.forEach((h) => {
     const th = document.createElement("th");
-    th.textContent = COLUMN_LABELS[h] || h;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sort-btn";
+    btn.title = "Sortuj po tej kolumnie";
+    btn.append(COLUMN_LABELS[h] || h);
+    const arrow = document.createElement("span");
+    arrow.className = "sort-arrow";
+    btn.appendChild(arrow);
+    btn.addEventListener("click", () => toggleSort(h));
+    th.appendChild(btn);
     headRow.appendChild(th);
+    sortIndicators.set(h, { th, arrow });
   });
   thead.appendChild(headRow);
   table.appendChild(thead);
@@ -168,10 +184,55 @@ function renderTable(container, rows) {
   pager.className = "pagination";
   pager.append(prevBtn, pageLabel, nextBtn);
 
+  function compareValues(a, b) {
+    if (typeof a === "number" && typeof b === "number") return a - b;
+    return String(a).localeCompare(String(b), "pl", { numeric: true });
+  }
+
+  function isEmpty(v) {
+    return v === "" || v === null || v === undefined;
+  }
+
+  function applySort() {
+    if (!sortHeader) {
+      displayRows = newestFirst;
+    } else {
+      const dir = sortDir === "asc" ? 1 : -1;
+      displayRows = newestFirst.slice().sort((x, y) => {
+        const a = x[sortHeader];
+        const b = y[sortHeader];
+        if (isEmpty(a) || isEmpty(b)) return isEmpty(a) && isEmpty(b) ? 0 : isEmpty(a) ? 1 : -1;
+        return dir * compareValues(a, b);
+      });
+    }
+    sortIndicators.forEach(({ th, arrow }, h) => {
+      const active = h === sortHeader;
+      arrow.textContent = active ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+      th.classList.toggle("sorted", active);
+      if (active) th.setAttribute("aria-sort", sortDir === "asc" ? "ascending" : "descending");
+      else th.removeAttribute("aria-sort");
+    });
+  }
+
+  function toggleSort(h) {
+    if (sortHeader !== h) {
+      sortHeader = h;
+      sortDir = "desc";
+    } else if (sortDir === "desc") {
+      sortDir = "asc";
+    } else {
+      sortHeader = null;
+      sortDir = null;
+    }
+    applySort();
+    currentPage = 0;
+    renderPage();
+  }
+
   function renderPage() {
     tbody.replaceChildren();
     const start = currentPage * PAGE_SIZE;
-    newestFirst.slice(start, start + PAGE_SIZE).forEach((row) => {
+    displayRows.slice(start, start + PAGE_SIZE).forEach((row) => {
       const tr = document.createElement("tr");
       headers.forEach((h) => {
         const td = document.createElement("td");
