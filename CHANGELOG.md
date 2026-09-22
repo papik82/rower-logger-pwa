@@ -11,6 +11,15 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.24 — 2026-09-22
+Nowy układ kafli na ekranie Trening — 3 wiersze po 2 kafle.
+- **Wiersz 1**: Czas, Dystans (bez zmian)
+- **Wiersz 2**: Kadencja, Moc — wraca kafelek `#statPower` (W, z
+  `sample.power_w` w `updateLiveStats()`)
+- **Wiersz 3**: Prędkość, Puls
+- `styles.css`: `#liveStats` jako siatka 2-kolumnowa zamiast 6-kolumnowej
+  (3 + 2 kafle)
+
 ## 1.23 — 2026-09-20
 Tryb „Trening testowy”.
 - **Ustawienia**: checkbox „Trening testowy” (`rowerLoggerTestMode` w

@@ -336,10 +336,9 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
 /* ===== Zwarty układ strony Trening — całość ma mieścić się na ~1 ekranie ===== */
 body.page-training main { gap: 12px; }
 
-/* kafle live: Czas, Prędkość, Kadencja / Dystans + szerszy Puls z plakietką strefy */
-#liveStats { grid-template-columns: repeat(6, 1fr); gap: 8px; }
-#liveStats > .stat-card { grid-column: span 2; padding: 10px 12px; min-width: 0; }
-#liveStats > .stat-card:nth-child(-n+2) { grid-column: span 3; }
+/* kafle live, 3 wiersze po 2: Czas, Dystans / Kadencja, Moc / Prędkość, Puls */
+#liveStats { grid-template-columns: 1fr 1fr; gap: 8px; }
+#liveStats > .stat-card { padding: 10px 12px; min-width: 0; }
 #liveStats > .stat-card:nth-child(-n+2) .value { font-size: 24px; }
 #liveStats .label { font-size: 11px; margin: 0 0 2px; }
 #liveStats .value { font-size: 20px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 4px; }
