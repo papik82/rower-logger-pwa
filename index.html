@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=1.24">
+<link rel="stylesheet" href="styles.css?v=1.25">
 </head>
 <body class="page-training">
 
@@ -126,7 +126,7 @@
     </div>
   </div>
 
-  <div id="hrSparklineWrap" class="stat-card" title="Trend z ostatnich ~5 min; jaśniejsza, cieńsza linia to średnia z treningu">
+  <div id="hrSparklineWrap" class="stat-card" title="Trend z ostatnich ~5 min; cieńsza linia to średnia z treningu, kolor tła to strefa tętna w danym momencie">
     <div class="sparkline-header">
       <p class="label">Puls · 5 min</p>
     </div>
@@ -170,12 +170,12 @@
 
 <footer>Rower Logger PWA — <span id="appVersion"></span></footer>
 
-<script src="nav.js?v=1.24"></script>
-<script src="app.js?v=1.24"></script>
+<script src="nav.js?v=1.25"></script>
+<script src="app.js?v=1.25"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=1.24').catch(() => {});
+    navigator.serviceWorker.register('sw.js?v=1.25').catch(() => {});
   });
 }
 </script>

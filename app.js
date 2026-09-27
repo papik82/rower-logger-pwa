@@ -202,6 +202,9 @@ let sparklineData = [];
 let hrSparklineData = [];
 let sparklineAvgData = [];
 let hrSparklineAvgData = [];
+// Strefa tętna każdej próbki wykresu pulsu (jak w zoneTimeline: -1 =
+// brak odczytu, 0 = poniżej Z1) — z niej barwione jest tło wykresu.
+let hrSparklineZones = [];
 let speedRunningSum = 0;
 let speedRunningCount = 0;
 let hrRunningSum = 0;
@@ -430,7 +433,8 @@ function createZonesView(container, zones, opts) {
     return { chip, time };
   });
 
-  root.append(meta, bar, chipsWrap);
+  const showBar = opts.showBar !== false;
+  root.append(...(showBar ? [meta, bar, chipsWrap] : [meta, chipsWrap]));
   container.appendChild(root);
 
   return {
@@ -440,7 +444,9 @@ function createZonesView(container, zones, opts) {
           badge.hidden = true;
         } else {
           badge.hidden = false;
-          badge.textContent = currentIndex === 0 ? ZONE_BELOW_LABEL : `Strefa ${currentIndex}`;
+          badge.textContent = currentIndex === 0
+            ? ZONE_BELOW_LABEL
+            : `Strefa ${currentIndex} · ${zones[currentIndex - 1].label}`;
           badge.style.background = segColors[currentIndex];
           badge.style.color = currentIndex === 0 ? "#F2F5F4" : "#12181B";
         }
@@ -448,7 +454,7 @@ function createZonesView(container, zones, opts) {
 
       const total = secs.reduce((a, b) => a + b, 0);
       bar.replaceChildren();
-      (timeline || []).forEach((t) => {
+      (showBar ? timeline || [] : []).forEach((t) => {
         const seg = document.createElement("div");
         seg.style.flex = String(t.secs);
         if (t.zone >= 0) seg.style.background = segColors[t.zone];
@@ -472,9 +478,11 @@ function initLiveZones() {
     return;
   }
   liveZones = computeHrZones(maxHr, getRestingHr());
+  // Na żywo bez paska osi czasu — strefy widać jako tło wykresu pulsu.
   zonesLiveView = createZonesView(body, liveZones, {
     title: "Czas w strefach tętna",
     showCurrent: true,
+    showBar: false,
   });
   zonesSummaryView = createZonesView(document.getElementById("summaryZonesBody"), liveZones, { title: "Łącznie" });
   renderLiveZones();
@@ -550,6 +558,8 @@ function startSampling() {
     if (sparklineData.length > 60) sparklineData.shift();
     hrSparklineData.push(sample.heart_rate_bpm ?? 0);
     if (hrSparklineData.length > 60) hrSparklineData.shift();
+    hrSparklineZones.push(liveZones && sample.heart_rate_bpm > 0 ? hrZoneIndex(liveZones, sample.heart_rate_bpm) : -1);
+    if (hrSparklineZones.length > 60) hrSparklineZones.shift();
 
     if (sample.speed_kmh !== undefined && sample.speed_kmh !== null) {
       speedRunningSum += sample.speed_kmh;
@@ -746,6 +756,7 @@ async function startRecording() {
     hrSparklineData = [];
     sparklineAvgData = [];
     hrSparklineAvgData = [];
+    hrSparklineZones = [];
     speedRunningSum = 0;
     speedRunningCount = 0;
     hrRunningSum = 0;
@@ -934,7 +945,29 @@ function drawSparklineLine(ctx, data, w, h, min, range, lineWidth, alpha) {
   ctx.globalAlpha = 1;
 }
 
-function drawSparklineChart(canvasId, data, avgData, color, maxLabelId, minLabelId, decimals) {
+// Tło wykresu pulsu: pionowe pasy w kolorze strefy tętna danej próbki
+// (każda próbka zajmuje ±pół kroku wokół swojego punktu), sąsiednie
+// próbki w tej samej strefie scalone w jeden pas. Próbki bez odczytu
+// pulsu (-1) zostają bez tła — tak samo jak luki na pasku stref.
+function drawZoneBands(ctx, zones, w, h) {
+  const colors = [ZONE_BELOW_COLOR, ...liveZones.map((z) => z.color)];
+  const step = w / (zones.length - 1);
+  ctx.globalAlpha = 0.28;
+  let start = 0;
+  for (let i = 1; i <= zones.length; i++) {
+    if (i < zones.length && zones[i] === zones[start]) continue;
+    if (zones[start] >= 0) {
+      const x0 = Math.max(0, (start - 0.5) * step);
+      const x1 = Math.min(w, (i - 0.5) * step);
+      ctx.fillStyle = colors[zones[start]];
+      ctx.fillRect(x0, 0, x1 - x0, h);
+    }
+    start = i;
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSparklineChart(canvasId, data, avgData, color, maxLabelId, minLabelId, decimals, zones) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
@@ -955,6 +988,8 @@ function drawSparklineChart(canvasId, data, avgData, color, maxLabelId, minLabel
   document.getElementById(maxLabelId).textContent = Math.max(...data).toFixed(decimals);
   document.getElementById(minLabelId).textContent = Math.min(...data).toFixed(decimals);
 
+  if (zones && liveZones) drawZoneBands(ctx, zones, w, h);
+
   ctx.strokeStyle = color;
   drawSparklineLine(ctx, avgData, w, h, min, range, 1.5, 0.4);
   drawSparklineLine(ctx, data, w, h, min, range, 2, 1);
@@ -963,7 +998,9 @@ function drawSparklineChart(canvasId, data, avgData, color, maxLabelId, minLabel
 function drawSparkline() {
   if (sparklineData.length < 2) return;
   drawSparklineChart("sparklineSpeed", sparklineData, sparklineAvgData, "#2FD9C4", "speedSparkMax", "speedSparkMin", 1);
-  drawSparklineChart("sparklineHr", hrSparklineData, hrSparklineAvgData, "#FF9F43", "hrSparkMax", "hrSparkMin", 0);
+  // Przy tle stref linia pulsu jasna — pomarańczowa zlewałaby się z Z4.
+  drawSparklineChart("sparklineHr", hrSparklineData, hrSparklineAvgData, liveZones ? "#F2F5F4" : "#FF9F43",
+    "hrSparkMax", "hrSparkMin", 0, hrSparklineZones);
 }
 
 /* ============================================================

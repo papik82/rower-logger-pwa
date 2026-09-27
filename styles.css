@@ -299,7 +299,10 @@ main { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-top: 8
   color: var(--text-muted);
   white-space: nowrap;
 }
-.zones-live-meta-left { display: flex; align-items: center; gap: 8px; }
+/* plakietka z nazwą strefy bywa długa — spada wtedy pod tytuł */
+.zones-live-meta-left { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+.zones-live-meta-left > span:first-child { white-space: nowrap; }
+.zones-live-meta > span:last-child { align-self: flex-start; }
 .zones-live-meta .zone-badge { font-size: 11px; padding: 1px 8px; }
 .zones-live-meta {
   display: flex;

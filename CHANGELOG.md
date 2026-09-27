@@ -11,6 +11,21 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.25 — 2026-09-27
+Strefy tętna jako tło wykresu pulsu na ekranie Trening.
+- **Wykres „Puls · 5 min”**: tło podzielone na pionowe pasy w kolorze
+  strefy tętna każdej próbki (te same kolory co na pasku stref, w tym
+  szary „poniżej Z1”). Próbki bez odczytu pulsu zostają bez tła.
+  Linia pulsu jasna zamiast pomarańczowej, żeby nie zlewała się z Z4
+  (pomarańczowa zostaje, gdy nie ustawiono tętna maksymalnego)
+- **Karta „Czas w strefach tętna”** na żywo bez kolorowego paska osi
+  czasu — zostają plakietka bieżącej strefy i kafelki z czasami.
+  Podsumowanie po Stop nadal pokazuje pasek z całego treningu
+- **Plakietka bieżącej strefy** z nazwą obok numeru, np. „Strefa 3 ·
+  Wytrzymałość aerobowa”. Gdy się nie mieści, spada pod tytuł karty
+- `app.js`: `hrSparklineZones` (strefa każdej próbki wykresu),
+  `drawZoneBands()`, opcja `showBar` w `createZonesView()`
+
 ## 1.24 — 2026-09-22
 Nowy układ kafli na ekranie Trening — 3 wiersze po 2 kafle.
 - **Wiersz 1**: Czas, Dystans (bez zmian)
