@@ -11,6 +11,14 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.27 — 2026-10-18
+Diagnostyka zawieszonego połączenia BLE.
+- `app.js`: `bleStep()` — każdy krok po połączeniu GATT (usługa,
+  charakterystyka, powiadomienia) jest logowany i ma limit 15 s.
+  Wcześniej zawieszenie po udanym `gatt.connect()` nie zostawiało
+  żadnego śladu w dzienniku. Przy błędzie rower jest rozłączany
+- `sw.js`: cache `rower-logger-v23`
+
 ## 1.26 — 2026-10-18
 Połączenie BLE nie zawiesza się już bez końca.
 - `app.js`: `gattConnectWithRetry()` — `gatt.connect()` z limitem 10 s

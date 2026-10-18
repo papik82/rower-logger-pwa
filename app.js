@@ -262,12 +262,13 @@ async function gattConnectWithRetry(device, attempts = 3, timeoutMs = 10000) {
   for (let i = 1; i <= attempts; i++) {
     try {
       log(`Łączenie z urządzeniem (próba ${i}/${attempts})...`);
-      return await Promise.race([
+      const server = await Promise.race([
         device.gatt.connect(),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error("przekroczono czas łączenia")), timeoutMs)
         ),
       ]);
+      return server;
     } catch (err) {
       lastErr = err;
       log(`  Próba ${i} nieudana: ${err.message}`);
@@ -276,6 +277,18 @@ async function gattConnectWithRetry(device, attempts = 3, timeoutMs = 10000) {
     }
   }
   throw lastErr;
+}
+
+// Krok BLE z logiem i limitem czasu — żeby zawieszenie było widoczne
+// w dzienniku, a nie wyglądało jak "nic się nie dzieje".
+function bleStep(label, promise, timeoutMs = 15000) {
+  log(`  ${label}...`);
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: przekroczono czas (${timeoutMs / 1000} s)`)), timeoutMs)
+    ),
+  ]).then((v) => { log(`  ${label} — OK`); return v; });
 }
 
 async function connectBike() {
@@ -289,17 +302,19 @@ async function connectBike() {
     bleDevice.addEventListener("gattserverdisconnected", onBikeDisconnected);
 
     bleServer = await gattConnectWithRetry(bleDevice);
-    const service = await bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE);
-    bleChar = await service.getCharacteristic(INDOOR_BIKE_DATA_CHAR);
+    log("Połączono GATT. Szukam usługi roweru...");
+    const service = await bleStep("Usługa Fitness Machine", bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE));
+    bleChar = await bleStep("Charakterystyka Indoor Bike Data", service.getCharacteristic(INDOOR_BIKE_DATA_CHAR));
 
     bleChar.addEventListener("characteristicvaluechanged", onBikeNotification);
-    await bleChar.startNotifications();
+    await bleStep("Włączanie powiadomień", bleChar.startNotifications());
 
     bikeConnected = true;
     updateBikeUI();
     log("Połączono z rowerem. Odbieram dane...");
   } catch (err) {
     log(`Nie udało się połączyć roweru: ${err.message}`);
+    try { if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect(); } catch (_) {}
   }
 }
 
@@ -350,10 +365,10 @@ async function connectHrStrap() {
     hrDevice.addEventListener("gattserverdisconnected", onHrDisconnected);
 
     hrServer = await gattConnectWithRetry(hrDevice);
-    const service = await hrServer.getPrimaryService(HEART_RATE_SERVICE);
-    hrChar = await service.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR);
+    const service = await bleStep("Usługa Heart Rate", hrServer.getPrimaryService(HEART_RATE_SERVICE));
+    hrChar = await bleStep("Charakterystyka pulsu", service.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR));
     hrChar.addEventListener("characteristicvaluechanged", onHrNotification);
-    await hrChar.startNotifications();
+    await bleStep("Włączanie powiadomień pulsu", hrChar.startNotifications());
 
     hrConnected = true;
     updateHrStrapUI();
