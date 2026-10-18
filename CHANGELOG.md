@@ -11,6 +11,14 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.28 — 2026-10-18
+Włączanie powiadomień BLE odporne na zawieszenie.
+- `app.js`: `startNotificationsRobust()` — pauza 0,8 s po wykryciu
+  usług, potem do 3 prób (świeża charakterystyka, limit 8 s na krok).
+  Dotyczy roweru i paska pulsu. Wcześniej `startNotifications()`
+  zawieszał się na telefonie mimo że nRF Connect działał z rowerem
+- `sw.js`: cache `rower-logger-v24`
+
 ## 1.27 — 2026-10-18
 Diagnostyka zawieszonego połączenia BLE.
 - `app.js`: `bleStep()` — każdy krok po połączeniu GATT (usługa,

@@ -291,6 +291,27 @@ function bleStep(label, promise, timeoutMs = 15000) {
   ]).then((v) => { log(`  ${label} — OK`); return v; });
 }
 
+// startNotifications() na Androidzie potrafi zawisnąć, gdy wywołać je
+// tuż po wykryciu usług. Krótka pauza i ponowna próba na świeżo pobranej
+// charakterystyce zwykle to przełamują.
+async function startNotificationsRobust(service, charUuid, handler, label, attempts = 3) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await new Promise((r) => setTimeout(r, i === 1 ? 800 : 1500));
+      const ch = await bleStep(`${label} — charakterystyka (próba ${i}/${attempts})`, service.getCharacteristic(charUuid), 8000);
+      ch.removeEventListener("characteristicvaluechanged", handler);
+      ch.addEventListener("characteristicvaluechanged", handler);
+      await bleStep(`${label} — powiadomienia`, ch.startNotifications(), 8000);
+      return ch;
+    } catch (err) {
+      lastErr = err;
+      log(`  Próba ${i} nieudana: ${err.message}`);
+    }
+  }
+  throw lastErr;
+}
+
 async function connectBike() {
   try {
     log("Otwieram wybór urządzenia Bluetooth...");
@@ -304,10 +325,7 @@ async function connectBike() {
     bleServer = await gattConnectWithRetry(bleDevice);
     log("Połączono GATT. Szukam usługi roweru...");
     const service = await bleStep("Usługa Fitness Machine", bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE));
-    bleChar = await bleStep("Charakterystyka Indoor Bike Data", service.getCharacteristic(INDOOR_BIKE_DATA_CHAR));
-
-    bleChar.addEventListener("characteristicvaluechanged", onBikeNotification);
-    await bleStep("Włączanie powiadomień", bleChar.startNotifications());
+    bleChar = await startNotificationsRobust(service, INDOOR_BIKE_DATA_CHAR, onBikeNotification, "Indoor Bike Data");
 
     bikeConnected = true;
     updateBikeUI();
@@ -366,9 +384,7 @@ async function connectHrStrap() {
 
     hrServer = await gattConnectWithRetry(hrDevice);
     const service = await bleStep("Usługa Heart Rate", hrServer.getPrimaryService(HEART_RATE_SERVICE));
-    hrChar = await bleStep("Charakterystyka pulsu", service.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR));
-    hrChar.addEventListener("characteristicvaluechanged", onHrNotification);
-    await bleStep("Włączanie powiadomień pulsu", hrChar.startNotifications());
+    hrChar = await startNotificationsRobust(service, HEART_RATE_MEASUREMENT_CHAR, onHrNotification, "Puls");
 
     hrConnected = true;
     updateHrStrapUI();
