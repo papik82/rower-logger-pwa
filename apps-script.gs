@@ -22,9 +22,21 @@
 const DETAIL_SHEET_NAME = "Trening_Szczegoly";
 const SUMMARY_SHEET_NAME = "Trening_Podsumowania";
 
+// Kopia ustawień z PWA (tętno maks./spoczynkowe, próg pokrycia pulsu) —
+// trzymana we właściwościach skryptu, żeby przetrwała wyczyszczenie danych
+// przeglądarki lub reinstalację PWA. Nie dotyka arkusza.
+const SETTINGS_PROPERTY_KEY = "rowerLoggerSettings";
+
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
+
+    if (payload.type === "settings") {
+      PropertiesService.getScriptProperties()
+        .setProperty(SETTINGS_PROPERTY_KEY, JSON.stringify(payload.settings || {}));
+      return jsonResponse({ ok: true });
+    }
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     let sheet;
@@ -51,6 +63,11 @@ function doPost(e) {
 // jako obiekt z kluczami wziętymi z nagłówków (pierwszy wiersz arkusza).
 function doGet(e) {
   try {
+    if (e && e.parameter && e.parameter.action === "settings") {
+      const raw = PropertiesService.getScriptProperties().getProperty(SETTINGS_PROPERTY_KEY);
+      return jsonResponse({ ok: true, settings: raw ? JSON.parse(raw) : null });
+    }
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     const detailSheet = ss.getSheetByName(DETAIL_SHEET_NAME);

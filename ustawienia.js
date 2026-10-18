@@ -141,10 +141,18 @@ document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   else localStorage.removeItem("rowerLoggerTestMode");
 
   renderHrZones();
-  showStatus(
-    testModeInput.checked ? "Zapisano ustawienia. Tryb testowy WŁĄCZONY — treningi nie będą zapisywane." : "Zapisano ustawienia.",
-    false
-  );
+  const baseMsg = testModeInput.checked
+    ? "Zapisano ustawienia. Tryb testowy WŁĄCZONY — treningi nie będą zapisywane."
+    : "Zapisano ustawienia.";
+  showStatus(baseMsg + " Zapisuję kopię w chmurze...", false);
+  pushSettingsToCloud().then((ok) => {
+    showStatus(
+      ok
+        ? baseMsg + " Kopia w chmurze zapisana."
+        : baseMsg + " Kopia w chmurze NIE zapisana (brak internetu albo skrypt Apps Script nie jest zaktualizowany).",
+      !ok
+    );
+  });
 });
 
 // Ta sama logika co dawniej w app.js — przeniesiona tu, bo to

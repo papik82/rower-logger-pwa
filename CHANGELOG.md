@@ -11,6 +11,22 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.29 — 2026-10-18
+Kopia ustawień w chmurze — tętno nie ginie po wyczyszczeniu danych.
+- Tętno maksymalne, spoczynkowe i próg pokrycia pulsu zapisywane są
+  dodatkowo w Apps Script (`PropertiesService`, bez dotykania arkusza)
+  przy każdym „Zapisz ustawienia"; status pokazuje, czy kopia się udała
+- `nav.js`: `pushSettingsToCloud()` i `restoreSettingsFromCloud()` —
+  przy starcie brakujące lokalnie ustawienia są uzupełniane z chmury
+  (jedna próba na sesję, nigdy nie nadpisuje wartości z telefonu),
+  potem strona przeładowuje się raz. Adres Apps Script i tryb testowy
+  nie są synchronizowane
+- `apps-script.gs`: `doPost` typ `settings`, `doGet ?action=settings`.
+  **Wymaga wklejenia nowego kodu i nowego wdrożenia** (Wdróż →
+  Zarządzaj wdrożeniami → Edytuj → Nowa wersja), potem raz kliknąć
+  „Zapisz ustawienia" w PWA, żeby powstała pierwsza kopia
+- `sw.js`: cache `rower-logger-v25`
+
 ## 1.28 — 2026-10-18
 Włączanie powiadomień BLE odporne na zawieszenie.
 - `app.js`: `startNotificationsRobust()` — pauza 0,8 s po wykryciu

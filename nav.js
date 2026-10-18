@@ -5,7 +5,7 @@
 // wiadomo, czy telefon faktycznie pobrał najnowszą wersję, bez
 // zaglądania do narzędzi deweloperskich. Format `MAJOR.MINOR`, ten
 // sam numer w `?v=` w adresach plików HTML — patrz CHANGELOG.md.
-const APP_VERSION = "1.28";
+const APP_VERSION = "1.29";
 
 // Domyślny adres wdrożenia — współdzielony z app.js przez ten sam klucz
 // w localStorage, żeby ustawienia zmienione na jednej podstronie
@@ -180,3 +180,76 @@ function markActiveNavTile() {
 }
 
 markActiveNavTile();
+
+/* ============================================================
+   Kopia ustawień w chmurze (Apps Script)
+   ============================================================
+   localStorage ginie przy wyczyszczeniu danych witryny, reinstalacji
+   PWA albo automatycznym czyszczeniu nieużywanych stron przez Androida.
+   Dlatego tętno maksymalne/spoczynkowe i próg pokrycia pulsu są
+   dodatkowo zapisywane w Apps Script (doPost type "settings") i
+   odtwarzane przy starcie, gdy lokalnie ich brakuje. Adres Apps Script
+   i tryb testowy celowo NIE są synchronizowane (adres jest kluczem do
+   kopii, tryb testowy jest per urządzenie). */
+const SYNCED_SETTINGS = [
+  { field: "maxHr", key: "rowerLoggerMaxHr" },
+  { field: "restingHr", key: "rowerLoggerRestingHr" },
+  { field: "minHrCoverage", key: "rowerLoggerMinHrCoverage" },
+];
+
+// Wysyła aktualny stan ustawień do chmury. Zwraca true/false — brak
+// zaktualizowanego skryptu po stronie Apps Script to zwykły false.
+async function pushSettingsToCloud() {
+  try {
+    const settings = { updatedAt: new Date().toISOString() };
+    SYNCED_SETTINGS.forEach(({ field, key }) => {
+      const raw = localStorage.getItem(key);
+      settings[field] = raw === null || raw === "" ? null : Number(raw);
+    });
+    const res = await fetch(getAppsScriptUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type: "settings", settings }),
+    });
+    const data = await res.json();
+    return !!data.ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Uzupełnia TYLKO brakujące lokalnie ustawienia wartościami z chmury
+// (nigdy nie nadpisuje tego, co jest w telefonie). Jedna próba na sesję
+// przeglądarki. Zwraca true, gdy coś odtworzono.
+async function restoreSettingsFromCloud() {
+  const SESSION_FLAG = "rowerLoggerSettingsRestoreTried";
+  try {
+    if (sessionStorage.getItem(SESSION_FLAG)) return false;
+    const missing = SYNCED_SETTINGS.filter(({ key }) => localStorage.getItem(key) === null);
+    if (missing.length === 0) return false;
+    sessionStorage.setItem(SESSION_FLAG, "1");
+
+    const res = await fetch(getAppsScriptUrl() + "?action=settings");
+    const data = await res.json();
+    if (!data.ok || !data.settings) return false;
+
+    let restored = false;
+    missing.forEach(({ field, key }) => {
+      const v = data.settings[field];
+      if (typeof v === "number" && Number.isFinite(v)) {
+        localStorage.setItem(key, String(v));
+        restored = true;
+      }
+    });
+    return restored;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Po odtworzeniu przeładuj stronę raz, żeby widoki (strefy, pola
+// formularza) zbudowały się już z przywróconymi wartościami. Flaga
+// sesji w restoreSettingsFromCloud() chroni przed pętlą.
+restoreSettingsFromCloud().then((restored) => {
+  if (restored) window.location.reload();
+});
