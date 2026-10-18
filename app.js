@@ -255,6 +255,29 @@ document.addEventListener("visibilitychange", async () => {
 /* ============================================================
    Bluetooth
    ============================================================ */
+// gatt.connect() potrafi zawisnąć bez błędu (np. przestarzały stan GATT po
+// kilku dniach przerwy). Dajemy mu limit czasu i ponawiamy próbę.
+async function gattConnectWithRetry(device, attempts = 3, timeoutMs = 10000) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      log(`Łączenie z urządzeniem (próba ${i}/${attempts})...`);
+      return await Promise.race([
+        device.gatt.connect(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("przekroczono czas łączenia")), timeoutMs)
+        ),
+      ]);
+    } catch (err) {
+      lastErr = err;
+      log(`  Próba ${i} nieudana: ${err.message}`);
+      try { if (device.gatt.connected) device.gatt.disconnect(); } catch (_) {}
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+  throw lastErr;
+}
+
 async function connectBike() {
   try {
     log("Otwieram wybór urządzenia Bluetooth...");
@@ -265,7 +288,7 @@ async function connectBike() {
 
     bleDevice.addEventListener("gattserverdisconnected", onBikeDisconnected);
 
-    bleServer = await bleDevice.gatt.connect();
+    bleServer = await gattConnectWithRetry(bleDevice);
     const service = await bleServer.getPrimaryService(FITNESS_MACHINE_SERVICE);
     bleChar = await service.getCharacteristic(INDOOR_BIKE_DATA_CHAR);
 
@@ -326,7 +349,7 @@ async function connectHrStrap() {
     });
     hrDevice.addEventListener("gattserverdisconnected", onHrDisconnected);
 
-    hrServer = await hrDevice.gatt.connect();
+    hrServer = await gattConnectWithRetry(hrDevice);
     const service = await hrServer.getPrimaryService(HEART_RATE_SERVICE);
     hrChar = await service.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR);
     hrChar.addEventListener("characteristicvaluechanged", onHrNotification);

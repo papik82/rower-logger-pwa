@@ -11,6 +11,14 @@ Wpisy od `.10` pochodzą z bieżącej pracy nad projektem.
 
 ---
 
+## 1.26 — 2026-10-18
+Połączenie BLE nie zawiesza się już bez końca.
+- `app.js`: `gattConnectWithRetry()` — `gatt.connect()` z limitem 10 s
+  i 3 próbami (rozłączenie GATT między próbami), wpisy w logu na
+  ekranie. Dotyczy roweru i paska pulsu. Wcześniej zawieszone
+  połączenie nie dawało żadnego błędu ("klikam Połącz i nic")
+- `sw.js`: cache `rower-logger-v22`
+
 ## 1.25 — 2026-09-27
 Strefy tętna jako tło wykresu pulsu na ekranie Trening.
 - **Wykres „Puls · 5 min”**: tło podzielone na pionowe pasy w kolorze
